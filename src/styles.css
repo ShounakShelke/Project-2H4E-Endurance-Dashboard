@@ -1,0 +1,196 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.5rem;
+  /* Black, red, and white command-center theme */
+  --background: oklch(0.095 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.135 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.64 0.25 27);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.20 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.18 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.985 0 0);
+  --accent-foreground: oklch(0.095 0 0);
+  --destructive: oklch(0.64 0.25 27);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.28 0 0);
+  --input: oklch(0.22 0 0);
+  --ring: oklch(0.64 0.25 27);
+  --chart-1: oklch(0.985 0 0);
+  --chart-2: oklch(0.64 0.25 27);
+  --chart-3: oklch(0.87 0.17 95);
+  --chart-4: oklch(0.76 0.20 145);
+  --chart-5: oklch(0.50 0.22 27);
+  --sidebar: oklch(0.115 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.64 0.25 27);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.28 0 0);
+  --sidebar-ring: oklch(0.64 0.25 27);
+
+  /* Motorsport accents */
+  --neon-cyan: oklch(0.985 0 0);
+  --neon-blue: oklch(0.64 0.25 27);
+  --racing-red: oklch(0.64 0.25 27);
+  --sector-yellow: oklch(0.87 0.17 95);
+  --sector-green: oklch(0.76 0.20 145);
+  --sector-purple: oklch(0.64 0.25 27);
+  --tire-orange: oklch(0.64 0.25 27);
+  --pit-purple: oklch(0.64 0.25 27);
+
+  --gradient-panel: linear-gradient(160deg, oklch(0.16 0 0) 0%, oklch(0.105 0 0) 100%);
+  --gradient-glow: radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--racing-red) 18%, transparent), transparent 70%);
+  --shadow-glow: 0 0 24px -4px color-mix(in oklab, var(--racing-red) 45%, transparent);
+  --shadow-panel: 0 8px 32px -12px oklch(0 0 0 / 0.78);
+  --carbon: repeating-linear-gradient(45deg, oklch(0.16 0 0) 0 2px, oklch(0.105 0 0) 2px 4px);
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    background-image:
+      radial-gradient(1200px 600px at 20% -10%, color-mix(in oklab, var(--racing-red) 10%, transparent), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, color-mix(in oklab, var(--foreground) 5%, transparent), transparent 60%);
+    background-attachment: fixed;
+    font-family: "Google Sans", Arial, Helvetica, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  body * {
+    letter-spacing: 0 !important;
+  }
+}
+
+@layer utilities {
+  .font-mono-tele { font-family: "Google Sans", Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0 !important; }
+  .panel {
+    background: var(--gradient-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-panel);
+    position: relative;
+    overflow: hidden;
+  }
+  .panel-glow::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: var(--gradient-glow);
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .grid-bg,
+  .command-bg {
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .live-timing-panel { width: 100%; }
+  .carbon-bg { background: var(--carbon); }
+  .text-cyan { color: var(--neon-cyan); }
+  .text-red-racing { color: var(--racing-red); }
+  .text-yellow-sector { color: var(--sector-yellow); }
+  .text-green-sector { color: var(--sector-green); }
+  .text-purple-sector { color: var(--sector-purple); }
+  .bg-cyan { background-color: var(--neon-cyan); }
+  .bg-red-racing { background-color: var(--racing-red); }
+  .bg-yellow-sector { background-color: var(--sector-yellow); }
+  .bg-green-sector { background-color: var(--sector-green); }
+  .bg-purple-sector { background-color: var(--sector-purple); }
+  .glow-cyan { box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent); }
+  .glow-red { box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent); }
+
+  @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+  .live-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+
+  @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(2400%); } }
+  .scanline::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--racing-red), transparent);
+    opacity: 0.4; animation: scan 6s linear infinite;
+  }
+
+  @keyframes flash-row { 0% { background: color-mix(in oklab, var(--racing-red) 30%, transparent); } 100% { background: transparent; } }
+  .flash { animation: flash-row 1.2s ease-out; }
+
+  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+  .ticker { animation: ticker 40s linear infinite; }
+}
