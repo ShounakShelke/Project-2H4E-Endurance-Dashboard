@@ -34,3 +34,5 @@ project-2h4e-smoke.png
 *.njsproj
 *.sln
 *.sw?
+
+.env

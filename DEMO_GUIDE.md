@@ -1,15 +1,15 @@
 # Project 2H4E Demo Guide
 
-## 1. Start The System
+## 1. Start
 
-Run the backend:
+Backend:
 
 ```bash
 cd backend
 uvicorn main:app --reload
 ```
 
-Run the frontend:
+Frontend:
 
 ```bash
 npm run dev -- --host 127.0.0.1
@@ -17,66 +17,75 @@ npm run dev -- --host 127.0.0.1
 
 Open `http://127.0.0.1:5173/`.
 
-## 2. Show The Command Center
+## 2. Blank First Load
 
-Point out the three-part operations layout:
+On first load, confirm the dashboard shows only the shell, setup controls, empty-state messages, and no static race data.
 
-- Left: live standings and car order
-- Center: circuit command surface with race position markers
-- Right: live telemetry, strategy impact, and circuit report
-- Bottom: YouTube intelligence, event feed, AI engineer, timeline, and mention cards
+Expected:
 
-## 3. Demonstrate Live YouTube Intelligence
+- Topbar says `Project 2H4E`.
+- Top-right says `Created with ❤️ By Shounak Shelke`.
+- Standings, telemetry, operations core, AI alerts, timeline, circuit report, and mention cards are blank.
 
-Paste a YouTube live URL into the Live YouTube Intelligence tile.
+## 3. Full Sample Demo
 
-Use this demo URL if no live stream is available:
+Click `Load Full Sample`.
+
+Expected:
+
+- Telemetry source fills with the sample websocket link.
+- Standings, operations core, telemetry charts, race commentary summary, event feed, AI engineer panel, timeline, mentions, tire chart, and circuit report populate.
+- Circuit report image zoom controls become usable.
+
+## 4. Race Commentary Intelligence
+
+Paste one or more links into `Race Commentary Intelligence`, one per line.
+
+Examples:
 
 ```text
 https://www.youtube.com/watch?v=project2h4e-demo
+https://www.fiawec.com/
 ```
 
 Click `Connect`, then `Summarize Now`.
 
-Expected result:
+Expected:
 
-- Summary appears in the tile
-- Event feed receives race intelligence
-- AI engineer panel includes broadcast context
-- Timeline updates
-- Cars and teams mentioned appear as cards
+- Source chips appear.
+- Commentary summary appears if source text/captions are available.
+- If public captions/text are unavailable, fallback is clearly labeled.
 
-## 4. Demonstrate Circuit Report
+## 5. Circuit Report And Zoom
 
-Enter a circuit or location, for example:
+Enter a circuit name:
 
 ```text
-Circuit de la Sarthe
+Spa-Francorchamps
 ```
 
-Click `Build`.
+Click `Build`, then use `Zoom In`, `Zoom Out`, and `Reset` on the image.
 
-Expected result:
+Expected:
 
-- Circuit report updates
-- Overtaking, tire/fuel, risk, and engineer-call sections appear
-- Circuit map card remains visually aligned with the main command view
+- Report is source-backed from Wikipedia/Wikimedia when available.
+- Google context link appears.
+- Image zoom changes the image only, not the tile size.
 
-## 5. Print The Report
+## 6. Clear
+
+Click `Clear` in the telemetry source bar.
+
+Expected:
+
+- Entire dashboard returns to blank state.
+- Commentary links, sample telemetry, summaries, timeline, circuit report, event feed, AI panel, and charts clear.
+
+## 7. Print
 
 Click `Print PDF`.
 
-Expected result:
+Expected:
 
-- Browser print dialog opens
-- Interactive-only controls are hidden
-- Dashboard panels print as a clean engineering report
-
-## 6. Backend API Demo
-
-Open:
-
-- `http://127.0.0.1:8000/health`
-- `http://127.0.0.1:8000/api/live-source/summaries`
-- `http://127.0.0.1:8000/api/circuits/report/latest`
-- `http://127.0.0.1:8000/api/engineering/strategy`
+- Browser print dialog opens.
+- Interactive setup controls are hidden in print mode.

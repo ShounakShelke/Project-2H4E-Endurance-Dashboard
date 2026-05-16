@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Realtime motorsport telemetry, YouTube caption intelligence, circuit reports, strategy timelines, and AI race engineering.",
+          "Realtime motorsport telemetry, race commentary intelligence, circuit reports, strategy timelines, and AI race engineering.",
       },
       { property: "og:title", content: "Project 2H4E" },
       {

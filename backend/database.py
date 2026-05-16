@@ -85,6 +85,9 @@ def init_db() -> None:
           url TEXT NOT NULL,
           video_id TEXT NOT NULL,
           status TEXT NOT NULL,
+          source_type TEXT DEFAULT 'youtube',
+          title TEXT,
+          transcript_mode TEXT,
           last_polled_at TEXT,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
@@ -135,8 +138,16 @@ def init_db() -> None:
           source_title TEXT,
           source_url TEXT,
           image_url TEXT,
+          image_status TEXT,
+          image_candidates TEXT,
+          image_index INTEGER DEFAULT 0,
+          image_reason TEXT,
           data_source TEXT,
           source_status TEXT,
+          google_source_title TEXT,
+          google_source_url TEXT,
+          google_source_snippet TEXT,
+          google_status TEXT,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """,
@@ -161,11 +172,31 @@ def init_db() -> None:
             row["name"] for row in conn.execute("PRAGMA table_info(circuit_reports)").fetchall()
         }
         for column, definition in {
+            "source_type": "TEXT DEFAULT 'youtube'",
+            "title": "TEXT",
+            "transcript_mode": "TEXT",
+        }.items():
+            if column not in {
+                row["name"] for row in conn.execute("PRAGMA table_info(youtube_sources)").fetchall()
+            }:
+                conn.execute(f"ALTER TABLE youtube_sources ADD COLUMN {column} {definition}")
+        existing_columns = {
+            row["name"] for row in conn.execute("PRAGMA table_info(circuit_reports)").fetchall()
+        }
+        for column, definition in {
             "source_title": "TEXT",
             "source_url": "TEXT",
             "image_url": "TEXT",
+            "image_status": "TEXT",
+            "image_candidates": "TEXT",
+            "image_index": "INTEGER DEFAULT 0",
+            "image_reason": "TEXT",
             "data_source": "TEXT",
             "source_status": "TEXT",
+            "google_source_title": "TEXT",
+            "google_source_url": "TEXT",
+            "google_source_snippet": "TEXT",
+            "google_status": "TEXT",
         }.items():
             if column not in existing_columns:
                 conn.execute(f"ALTER TABLE circuit_reports ADD COLUMN {column} {definition}")

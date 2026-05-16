@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -8,8 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from circuit_report.router import router as circuit_router
 from database import init_db, seed_db
-from live_intelligence.router import router as live_intelligence_router
+from live_intelligence.router import commentary_router, router as live_intelligence_router
 from live_intelligence.service import create_summary, ensure_demo_seed, latest_snapshot
+from live_timing.router import router as live_timing_router
 from race_engineering.router import router as engineering_router
 from race_engineering.service import build_snapshot
 
@@ -69,26 +71,43 @@ async def lifespan(app: FastAPI):
     init_db()
     seed_db()
     ensure_demo_seed()
-    inference_task = asyncio.create_task(inference_loop())
-    caption_task = asyncio.create_task(caption_polling_loop())
+    background_enabled = os.getenv("VERCEL") != "1" and os.getenv("PROJECT_2H4E_DISABLE_BACKGROUND_TASKS") != "1"
+    inference_task = asyncio.create_task(inference_loop()) if background_enabled else None
+    caption_task = asyncio.create_task(caption_polling_loop()) if background_enabled else None
     try:
         yield
     finally:
-        inference_task.cancel()
-        caption_task.cancel()
+        if inference_task:
+            inference_task.cancel()
+        if caption_task:
+            caption_task.cancel()
 
 
 app = FastAPI(title="Project 2H4E Race Engineering Command Center", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
+        "http://localhost:5175",
+        "http://127.0.0.1:5175",
+        *[
+            origin.strip()
+            for origin in os.getenv("PROJECT_2H4E_CORS_ORIGINS", "").split(",")
+            if origin.strip()
+        ],
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.include_router(engineering_router)
 app.include_router(live_intelligence_router)
+app.include_router(commentary_router)
 app.include_router(circuit_router)
+app.include_router(live_timing_router)
 
 
 @app.get("/health")

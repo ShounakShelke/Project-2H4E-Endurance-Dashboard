@@ -4,6 +4,8 @@ export type LiveEntity = {
   context: string;
 };
 
+import { projectApiBase } from "@/lib/apiBase";
+
 export type RaceSummary = {
   id: number;
   summary: string;
@@ -29,6 +31,7 @@ export type TimelineEvent = {
 
 export type LiveIntelligenceSnapshot = {
   source: Record<string, unknown> | null;
+  sources?: Array<Record<string, unknown>>;
   summaries: RaceSummary[];
   entities: LiveEntity[];
   timeline: TimelineEvent[];
@@ -36,7 +39,17 @@ export type LiveIntelligenceSnapshot = {
   poll_interval_seconds?: number;
 };
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = projectApiBase();
+
+export const EMPTY_LIVE_INTELLIGENCE: LiveIntelligenceSnapshot = {
+  source: null,
+  sources: [],
+  mode: "blank",
+  poll_interval_seconds: 300,
+  summaries: [],
+  entities: [],
+  timeline: [],
+};
 
 export const DEMO_LIVE_INTELLIGENCE: LiveIntelligenceSnapshot = {
   source: {
@@ -44,6 +57,14 @@ export const DEMO_LIVE_INTELLIGENCE: LiveIntelligenceSnapshot = {
     video_id: "project2h4e-demo",
     status: "demo",
   },
+  sources: [
+    {
+      url: "https://www.youtube.com/watch?v=project2h4e-demo",
+      source_type: "youtube",
+      status: "demo",
+      title: "Project 2H4E sample commentary",
+    },
+  ],
   mode: "demo-fallback",
   poll_interval_seconds: 300,
   summaries: [
@@ -93,9 +114,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
 export async function fetchLiveIntelligence(): Promise<LiveIntelligenceSnapshot> {
   try {
-    return await request<LiveIntelligenceSnapshot>("/api/live-source/summaries");
+    return await request<LiveIntelligenceSnapshot>("/api/commentary/summaries");
   } catch {
-    return DEMO_LIVE_INTELLIGENCE;
+    return EMPTY_LIVE_INTELLIGENCE;
   }
 }
 
@@ -106,6 +127,69 @@ export async function setYouTubeSource(url: string): Promise<LiveIntelligenceSna
   });
 }
 
+export async function setCommentarySources(urls: string[]): Promise<LiveIntelligenceSnapshot> {
+  return request<LiveIntelligenceSnapshot>("/api/commentary/sources", {
+    method: "POST",
+    body: JSON.stringify({ urls }),
+  });
+}
+
 export async function summarizeNow(): Promise<LiveIntelligenceSnapshot> {
-  return request<LiveIntelligenceSnapshot>("/api/live-source/summarize-now", { method: "POST" });
+  return request<LiveIntelligenceSnapshot>("/api/commentary/summarize-now", { method: "POST" });
+}
+
+export async function clearCommentarySources(): Promise<LiveIntelligenceSnapshot> {
+  return request<LiveIntelligenceSnapshot>("/api/commentary/clear", { method: "POST" });
+}
+
+export function makeClientCommentarySnapshot(urls: string[]): LiveIntelligenceSnapshot {
+  const now = new Date().toISOString();
+  const cleanUrls = urls.map((url) => url.trim()).filter(Boolean);
+  const primaryUrl = cleanUrls[0] || "submitted commentary source";
+  const summary = `Commentary source connected: ${primaryUrl}. The browser accepted this link as a valid race commentary input. Backend extraction is unavailable in this session, so configure the backend or Groq key for richer caption and event extraction.`;
+  return {
+    source: cleanUrls.length
+      ? {
+          url: primaryUrl,
+          source_type:
+            primaryUrl.includes("youtube") || primaryUrl.includes("youtu.be")
+              ? "youtube"
+              : "web-commentary",
+          status: "active",
+          title: "Browser commentary source",
+        }
+      : null,
+    sources: cleanUrls.map((url) => ({
+      url,
+      source_type:
+        url.includes("youtube") || url.includes("youtu.be") ? "youtube" : "web-commentary",
+      status: "active",
+      title: "Browser commentary source",
+    })),
+    mode: "live",
+    poll_interval_seconds: 300,
+    summaries: [
+      {
+        id: Date.now(),
+        summary,
+        provider: "browser-source",
+        confidence: 0.62,
+        status: "source-connected",
+        created_at: now,
+        url: primaryUrl,
+      },
+    ],
+    entities: [{ entity_type: "topic", label: "Commentary Source", context: summary }],
+    timeline: [
+      {
+        id: Date.now(),
+        source: "race-commentary",
+        event_type: "source",
+        title: "Commentary source connected",
+        detail: summary,
+        severity: "info",
+        created_at: now,
+      },
+    ],
+  };
 }

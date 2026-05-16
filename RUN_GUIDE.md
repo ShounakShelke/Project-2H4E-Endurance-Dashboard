@@ -6,59 +6,58 @@
 - npm
 - Python 3.11+
 
-## Install Frontend
+## Frontend Setup
 
 ```bash
 npm install
 ```
 
-## Install Backend
+Optional local `.env`:
 
 ```bash
-cd backend
-pip install -r requirements.txt
+VITE_PROJECT_2H4E_API_BASE=http://127.0.0.1:8000
 ```
 
-## Run Backend
-
-```bash
-cd backend
-uvicorn main:app --reload
-```
-
-The backend runs at `http://127.0.0.1:8000`.
-
-## Run Frontend
+Run:
 
 ```bash
 npm run dev -- --host 127.0.0.1
 ```
 
-The frontend runs at `http://127.0.0.1:5173`.
+Frontend: `http://127.0.0.1:5173`
 
-## Optional AI Configuration
+## Backend Setup
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Backend: `http://127.0.0.1:8000`
+
+Optional backend env:
 
 ```bash
 set GROQ_API_KEY=your_key_here
 set GROQ_MODEL=llama-3.1-8b-instant
-```
-
-Optional primary AI service:
-
-```bash
 set PROJECT_2H4E_AI_API_URL=https://your-ai-service.example/summarize
 set PROJECT_2H4E_AI_API_KEY=your_key_here
+set GOOGLE_API_KEY=your_google_key_here
+set GOOGLE_CSE_ID=your_programmable_search_engine_id
+set PROJECT_2H4E_CORS_ORIGINS=http://127.0.0.1:5173,http://localhost:5173
 ```
 
-Provider order:
+AI provider order:
 
 1. `PROJECT_2H4E_AI_API_URL` + `PROJECT_2H4E_AI_API_KEY`
 2. `GROQ_API_KEY`
-3. Deterministic demo fallback
+3. Labeled deterministic fallback
 
-## Verification Commands
+## Verification
 
 ```bash
+npm run format
 npm run lint
 npm run build
 python -m compileall backend
@@ -68,13 +67,13 @@ API smoke checks:
 
 ```bash
 curl http://127.0.0.1:8000/health
-curl http://127.0.0.1:8000/api/live-source/summaries
+curl http://127.0.0.1:8000/api/commentary/summaries
 curl http://127.0.0.1:8000/api/circuits/report/latest
 ```
 
-## Troubleshooting
+## Notes
 
-- If YouTube captions are unavailable, the app intentionally uses a labeled demo fallback transcript.
-- If AI keys are missing, summaries still work in demo mode.
-- If the frontend cannot reach the backend, the UI displays local demo data so the dashboard remains testable.
-- If print output includes controls, use the `Print PDF` button rather than printing an individual browser frame.
+- The dashboard starts blank by design.
+- `Load Full Sample` is the only automatic demo-data entry point.
+- `Clear` returns the whole dashboard to blank.
+- Vercel serverless deploys REST APIs cleanly, but persistent WebSockets/background loops are best on a long-running host.

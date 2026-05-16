@@ -2,12 +2,12 @@
 
 ## Runtime Topology
 
-React TypeScript frontend connects to FastAPI over REST for first paint and websocket channels for realtime updates.
+React TypeScript frontend connects to FastAPI over REST for blank-first data loading, sample mode, commentary summaries, circuit reports, and local websocket channels for realtime updates.
 
 - REST base: `http://127.0.0.1:8000/api/engineering`
 - Websocket base: `ws://127.0.0.1:8000/ws`
 - Database: SQLite at `backend/race_engineering.sqlite3`
-- Scheduler: FastAPI lifespan starts an async inference loop broadcasting once per second
+- Scheduler: FastAPI lifespan starts local async loops unless `VERCEL=1` or `PROJECT_2H4E_DISABLE_BACKGROUND_TASKS=1`
 
 ## Backend Modules
 
@@ -17,6 +17,8 @@ React TypeScript frontend connects to FastAPI over REST for first paint and webs
 - `fuel_models`: fuel burn and fuel-save estimation
 - `tire_models`: tire degradation, thermal stress, life remaining, pace-loss curves
 - `rival_analysis`: battle intensity, threat score, rival pit prediction
+- `live_intelligence`: race commentary source ingestion for YouTube and generic public commentary pages
+- `circuit_report`: Wikipedia/Wikimedia circuit reports with Google context links or API results
 
 ## ML Model Upgrade Plan
 
@@ -31,6 +33,10 @@ The current predictors are deterministic scaffolds designed to be API-stable whi
 
 ## API Contract
 
+- `POST /api/commentary/sources`: configure one or more commentary/video links
+- `GET /api/commentary/summaries`: latest race commentary intelligence snapshot
+- `POST /api/commentary/summarize-now`: summarize active commentary sources now
+- `POST /api/commentary/clear`: return commentary state to blank
 - `GET /telemetry`: speed, throttle, brake, tire temp, ERS deployment
 - `GET /tires`: degradation estimate, thermal stress, tire life, stint score
 - `GET /fuel`: burn rate, laps remaining, save mode, emergency pit prediction
@@ -69,5 +75,6 @@ Suggested mapping:
 3. Confirm REST: call `/api/engineering/strategy`, `/ai-alerts`, and `/degradation`.
 4. Confirm frontend: `npm run dev -- --host 127.0.0.1`.
 5. Open `http://127.0.0.1:5173/`.
-6. Press `Test Live Data` to expose the sample data packet.
-7. Confirm Live Timing defaults to 15 and expands to 30, 50, and All.
+6. Confirm the frontend starts blank.
+7. Press `Load Full Sample` to expose the sample data packet.
+8. Press `Clear` to return to blank state.

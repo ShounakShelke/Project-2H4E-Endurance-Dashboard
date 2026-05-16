@@ -74,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Project 2H4E" },
       { name: "description", content: "Project 2H4E race engineering command center." },
-      { name: "author", content: "HP" },
+      { name: "author", content: "Shounak Shelke" },
       { property: "og:title", content: "Project 2H4E" },
       {
         property: "og:description",

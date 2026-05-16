@@ -292,7 +292,7 @@
 
   .ops-shell {
     min-height: 100vh;
-    padding: 16px;
+    padding: 132px 16px 16px;
     background:
       linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
       linear-gradient(
@@ -313,17 +313,70 @@
   }
 
   .ops-topbar {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    right: 16px;
+    z-index: 50;
     display: grid;
-    grid-template-columns: minmax(280px, 1fr) auto auto;
+    grid-template-columns: minmax(280px, 1fr) auto;
     gap: 12px;
     align-items: center;
     padding: 18px 18px;
+    background: oklch(0.1 0 0 / 0.78);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
   }
 
   .ops-topbar h1 {
     font-size: 42px;
     font-weight: 700;
     line-height: 1.1;
+  }
+
+  .topbar-credit {
+    max-width: 260px;
+    color: var(--foreground);
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+    text-transform: uppercase;
+  }
+
+  .topbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .topbar-time-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .readonly-time-chip {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.09 0 0 / 0.78);
+    padding: 7px 10px;
+    color: var(--muted-foreground);
+    cursor: default;
+    font-size: 11px;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .readonly-time-chip strong {
+    color: var(--foreground);
+    font-size: 13px;
   }
 
   .source-bar {
@@ -436,6 +489,13 @@
     border-color: var(--foreground);
   }
 
+  .ops-button:disabled,
+  .ops-button-secondary:disabled,
+  .mini-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
   .ops-layout {
     display: grid;
     grid-template-columns: 260px minmax(0, 1fr) 340px;
@@ -451,19 +511,6 @@
   .right-stack {
     display: grid;
     gap: 10px;
-  }
-
-  .command-map {
-    position: relative;
-    min-height: 720px;
-    overflow: hidden;
-    background:
-      radial-gradient(
-        circle at 50% 50%,
-        color-mix(in oklab, var(--foreground) 6%, transparent),
-        transparent 48%
-      ),
-      oklch(0.075 0 0);
   }
 
   .engineering-core {
@@ -490,10 +537,62 @@
 
   .standings-row {
     border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    cursor: pointer;
   }
 
   .standings-row:hover {
     background: oklch(0.18 0 0);
+  }
+
+  .standings-row-selected {
+    background: color-mix(in oklab, var(--racing-red) 18%, oklch(0.12 0 0)) !important;
+    outline: 1px solid var(--racing-red);
+    outline-offset: -1px;
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .comparison-card,
+  .comparison-dashboard,
+  .comparison-stat,
+  .comparison-sector {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.085 0 0 / 0.72);
+  }
+
+  .comparison-card,
+  .comparison-dashboard {
+    padding: 12px;
+  }
+
+  .comparison-stat,
+  .comparison-sector {
+    padding: 9px;
+  }
+
+  .comparison-stat span,
+  .comparison-sector span {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .comparison-stat strong,
+  .comparison-sector strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--foreground);
+    font-size: 12px;
+  }
+
+  .comparison-dashboard {
+    margin-top: 10px;
   }
 
   .metric-box,
@@ -585,6 +684,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transform-origin: center;
+    transition: transform 180ms ease;
   }
 
   @media (max-width: 1200px) {
@@ -594,18 +695,20 @@
 
     .left-standings,
     .right-stack,
-    .command-map {
+    .engineering-core {
       min-height: auto;
-    }
-
-    .command-map {
-      height: 560px;
     }
   }
 
   @media (max-width: 760px) {
     .ops-shell {
-      padding: 8px;
+      padding: 214px 8px 8px;
+    }
+
+    .ops-topbar {
+      left: 8px;
+      right: 8px;
+      top: 8px;
     }
 
     .ops-topbar,
@@ -626,8 +729,13 @@
       justify-content: flex-start;
     }
 
-    .command-map {
-      height: 460px;
+    .topbar-actions,
+    .topbar-time-group {
+      justify-content: flex-start;
+    }
+
+    .comparison-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -665,10 +773,6 @@
     button,
     input {
       display: none !important;
-    }
-
-    .command-map {
-      height: 520px;
     }
   }
 }
