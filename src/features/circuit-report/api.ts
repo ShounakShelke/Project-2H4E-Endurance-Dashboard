@@ -35,38 +35,50 @@ export type CircuitReport = {
 const API_BASE = projectApiBase();
 
 export const DEMO_CIRCUIT_REPORT: CircuitReport = {
-  location: "Circuit de la Sarthe",
+  location: "Spa-Francorchamps",
   race_context: "sample endurance race",
   overview:
-    "Wikipedia sample: Circuit de la Sarthe is the semi-permanent motorsport course used for the 24 Hours of Le Mans. It combines permanent circuit sections with public roads, long full-throttle periods, and heavy braking zones.",
+    "Wikipedia sample: Circuit de Spa-Francorchamps is a Belgian motorsport circuit known for fast elevation changes, long acceleration zones, and classic endurance racing pressure points including Eau Rouge, Raidillon, Kemmel, and Blanchimont.",
   overtaking_zones:
-    "Best overtaking opportunities come after long acceleration zones into heavy braking references, especially when multi-class traffic compresses the field.",
+    "Primary overtaking is built around the Kemmel straight into Les Combes, plus pit-cycle positioning before Bruxelles and late-stint traffic around the Bus Stop chicane.",
   tire_fuel_notes:
-    "Fuel sensitivity is high because of long throttle time. Tire management must protect loaded exits and braking stability over extended stints.",
+    "Elevation and high-speed loading punish tire temperature spikes. Fuel targets should protect long full-throttle climbs while keeping enough margin for safety-car restarts.",
   risk_areas:
-    "Night running, slow zones, public-road surface changes, multi-class closing speed, and cold tires after pit exit are priority risk areas.",
+    "Eau Rouge/Raidillon commitment, wet-weather grip changes, cold tires after pit exit, and GT traffic through fast direction changes are priority risk areas.",
   recommendations:
-    "Prioritize clean air before pit windows, avoid stacking behind GT traffic, and use undercut attempts only when the release gap is clear.",
-  source_title: "Circuit de la Sarthe",
-  source_url: "https://en.wikipedia.org/wiki/Circuit_de_la_Sarthe",
+    "Use clean-air release before committing to an undercut, protect rear tires over the first two laps of each stint, and keep the driver informed about traffic before Kemmel.",
+  source_title: "Circuit de Spa-Francorchamps",
+  source_url: "https://en.wikipedia.org/wiki/Circuit_de_Spa-Francorchamps",
   image_url:
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Circuit_de_la_Sarthe_track_map.svg/640px-Circuit_de_la_Sarthe_track_map.svg.png",
+    "https://upload.wikimedia.org/wikipedia/commons/6/69/2022_F1_CourseLayout_Belgium.svg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
   image_status: "circuit-image",
   image_candidates: [
     {
-      title: "Circuit de la Sarthe track map.svg",
-      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Circuit_de_la_Sarthe_track_map.svg/640px-Circuit_de_la_Sarthe_track_map.svg.png",
+      title: "2022 F1 CourseLayout Belgium.svg",
+      url: "https://upload.wikimedia.org/wikipedia/commons/6/69/2022_F1_CourseLayout_Belgium.svg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
       mime: "image/svg+xml",
-      reason: "Sample circuit image: track map.",
+      reason: "Sample circuit image: Spa-Francorchamps course layout.",
+    },
+    {
+      title: "Spa-Francorchamps 1947 layout.svg",
+      url: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Spa-Francorchamps_1947_layout.svg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      mime: "image/svg+xml",
+      reason: "Sample circuit image: historical Spa-Francorchamps layout.",
+    },
+    {
+      title: "F1 circuits 2014-2018 - Circuit de Spa-Francorchamps (version 2).svg",
+      url: "https://upload.wikimedia.org/wikipedia/commons/c/cf/F1_circuits_2014-2018_-_Circuit_de_Spa-Francorchamps_%28version_2%29.svg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      mime: "image/svg+xml",
+      reason: "Sample circuit image: modern Spa-Francorchamps track map.",
     },
   ],
   image_index: 0,
-  image_reason: "Sample circuit image: track map.",
+  image_reason: "Sample circuit image: Spa-Francorchamps course layout.",
   data_source: "Wikipedia / Wikimedia",
   source_status: "sample",
-  google_source_title: "Google search: Circuit de la Sarthe endurance strategy",
+  google_source_title: "Google search: Spa-Francorchamps endurance strategy",
   google_source_url:
-    "https://www.google.com/search?q=Circuit%20de%20la%20Sarthe%20racing%20circuit%20endurance",
+    "https://www.google.com/search?q=Spa-Francorchamps%20racing%20circuit%20endurance",
   google_source_snippet:
     "Google API fallback link for additional public circuit and race-context research.",
   google_status: "search-link",

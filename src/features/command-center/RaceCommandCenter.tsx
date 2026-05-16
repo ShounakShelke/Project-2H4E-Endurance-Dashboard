@@ -39,7 +39,6 @@ import {
 } from "@/features/live-intelligence/LiveIntelligencePanel";
 import {
   AI_ALERTS,
-  RACE_STATUS,
   SEED_EVENTS,
   TIRE_DEG,
   useCars,
@@ -387,6 +386,162 @@ function engineeringRisk(car: ComparisonCar) {
   return "Manage traffic, protect stint rhythm";
 }
 
+function trackStateValue(liveTiming: LiveTimingSnapshot) {
+  return String(
+    liveTiming.track_state?.track_status ||
+      liveTiming.track_state?.status ||
+      liveTiming.track_state?.state ||
+      "",
+  ).trim();
+}
+
+function buildTimingSeries(rows: LiveTimingRow[]) {
+  return rows.slice(0, 30).map((row, index) => {
+    const last = timeToSeconds(row.last_lap) ?? 0;
+    const best = timeToSeconds(row.fastest_lap) ?? last;
+    return {
+      lap: displayValue(row.position, String(index + 1)),
+      car: Number(last.toFixed(3)),
+      rival: Number(best.toFixed(3)),
+    };
+  });
+}
+
+function buildTelemetrySeries(rows: LiveTimingRow[]) {
+  const leader = rows[0];
+  const rival = rows[1];
+  if (!leader) return [];
+  const sectors = leader.sectors?.length ? leader.sectors : [];
+  if (sectors.length) {
+    return sectors.map((sector, index) => ({
+      lap: `S${sector.sector || index + 1}`,
+      car: numericValue(sector.speed) ?? timeToSeconds(sector.time) ?? 0,
+      rival:
+        numericValue(rival?.sectors?.[index]?.speed) ??
+        timeToSeconds(rival?.sectors?.[index]?.time) ??
+        numericValue(sector.speed) ??
+        0,
+    }));
+  }
+  return rows.slice(0, 12).map((row, index) => ({
+    lap: displayValue(row.position, String(index + 1)),
+    car: timeToSeconds(row.last_lap) ?? index + 1,
+    rival: timeToSeconds(row.fastest_lap) ?? index + 1,
+  }));
+}
+
+function liveStrategyMetrics(rows: LiveTimingRow[]) {
+  const leader = rows[0];
+  const chaser = rows[1];
+  if (!leader) return null;
+  const laps = numericValue(leader.laps) ?? 0;
+  const pitCount = numericValue(leader.pit_count) ?? 0;
+  const lastLap = timeToSeconds(leader.last_lap);
+  const bestLap = timeToSeconds(leader.fastest_lap);
+  const lapDelta = lastLap !== null && bestLap !== null ? Math.max(0, lastLap - bestLap) : 0;
+  const tireScore = Math.max(42, Math.min(99, Math.round(94 - lapDelta * 4 - pitCount * 1.5)));
+  const stintRemainder = Math.max(1, 30 - (laps % 30 || 30));
+  const gapSeconds = numericValue(chaser?.gap);
+  return {
+    tireStatus: `${tireScore}%`,
+    fuelMargin: `${Math.max(0.4, stintRemainder * 0.09).toFixed(1)}L`,
+    pitWindow: `L${Math.max(laps + 1, laps + stintRemainder - 2)}`,
+    traffic: gapSeconds !== null && gapSeconds < 8 ? "Pressure" : "Clear",
+  };
+}
+
+function liveTireDegradation(rows: LiveTimingRow[]) {
+  return rows.slice(0, 30).map((row, index) => {
+    const last = timeToSeconds(row.last_lap);
+    const best = timeToSeconds(row.fastest_lap);
+    const loss = last !== null && best !== null ? Math.max(0, last - best) : index * 0.08;
+    const pits = numericValue(row.pit_count) ?? 0;
+    return {
+      lap: numericValue(row.laps) ?? index + 1,
+      soft: Number((loss + pits * 0.12).toFixed(2)),
+      medium: Number((loss * 0.72 + pits * 0.08).toFixed(2)),
+      hard: Number((loss * 0.48 + pits * 0.05).toFixed(2)),
+    };
+  });
+}
+
+function liveTimingEvents(rows: LiveTimingRow[]) {
+  const leader = rows[0];
+  const chaser = rows[1];
+  if (!leader) return [];
+  const events = [
+    {
+      t: "LIVE",
+      kind: "LEADER",
+      msg: `#${leader.car_no} leads ${leader.class_name || "overall"} on lap ${displayValue(leader.laps)} with last lap ${displayValue(leader.last_lap)}.`,
+    },
+  ];
+  if (chaser) {
+    events.push({
+      t: "LIVE",
+      kind: "GAP",
+      msg: `#${chaser.car_no} is the nearest visible rival at ${displayValue(chaser.gap)} with best lap ${displayValue(chaser.fastest_lap)}.`,
+    });
+  }
+  const pitWatch = rows.find((row) => numericValue(row.pit_count) !== null);
+  if (pitWatch) {
+    events.push({
+      t: "LIVE",
+      kind: "PIT",
+      msg: `#${pitWatch.car_no} pit-count data is active at ${displayValue(pitWatch.pit_count, "0")} stops.`,
+    });
+  }
+  return events;
+}
+
+function liveEngineerAlerts(rows: LiveTimingRow[], latestSummary?: string) {
+  const leader = rows[0];
+  const chaser = rows[1];
+  const alerts: { title: string; msg: string }[] = [];
+  if (latestSummary) {
+    alerts.push({ title: "Broadcast intelligence", msg: latestSummary });
+  }
+  if (leader) {
+    alerts.push({
+      title: `Leader watch #${leader.car_no}`,
+      msg: `${displayValue(leader.driver || leader.team)} is leading with last lap ${displayValue(leader.last_lap)} and best lap ${displayValue(leader.fastest_lap)}.`,
+    });
+  }
+  if (leader && chaser) {
+    alerts.push({
+      title: "Rival pressure",
+      msg: `Nearest visible rival #${chaser.car_no} sits at ${displayValue(chaser.gap)}. Monitor pit overlap and traffic release.`,
+    });
+  }
+  return alerts.slice(0, 4);
+}
+
+function explainTireCurve(
+  data: { soft: number; medium: number; hard: number }[],
+  sampleMode: boolean,
+) {
+  if (!data.length) {
+    return "No tire degradation explanation is available until telemetry or sample data provides lap and pace-loss values.";
+  }
+  const first = data[0];
+  const last = data[data.length - 1];
+  const softRise = last.soft - first.soft;
+  const mediumRise = last.medium - first.medium;
+  const hardRise = last.hard - first.hard;
+  const highest =
+    softRise >= mediumRise && softRise >= hardRise
+      ? "soft"
+      : mediumRise >= hardRise
+        ? "medium"
+        : "hard";
+  const source = sampleMode ? "Sample AI read" : "Source-driven AI read";
+  return `${source}: ${highest} degradation is rising fastest. Soft trend is ${softRise.toFixed(
+    2,
+  )}s, medium is ${mediumRise.toFixed(2)}s, and hard is ${hardRise.toFixed(
+    2,
+  )}s across the visible window. Strategy should protect the fastest-rising compound first, avoid unnecessary attack laps, and use the next pit window if lap-loss acceleration continues.`;
+}
+
 function ComparisonStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="comparison-stat">
@@ -545,9 +700,11 @@ function StandingsComparisonDialog({
 function LiveStandings({
   active,
   liveTiming,
+  sampleMode,
 }: {
   active: boolean;
   liveTiming: LiveTimingSnapshot;
+  sampleMode: boolean;
 }) {
   const { cars, flashId } = useCars();
   const [limit, setLimit] = useState<15 | 30 | 50 | "all">(15);
@@ -639,7 +796,7 @@ function LiveStandings({
               })}
             </tbody>
           </table>
-        ) : active ? (
+        ) : active && sampleMode ? (
           <table className="w-full text-left text-xs">
             <thead className="sticky top-0 bg-card text-muted-foreground">
               <tr>
@@ -705,36 +862,51 @@ function EngineeringCorePanel({
   intelligence,
   active,
   liveTiming,
+  sampleMode,
 }: {
   intelligence: LiveIntelligenceSnapshot;
   active: boolean;
   liveTiming: LiveTimingSnapshot;
+  sampleMode: boolean;
 }) {
   const tick = useTick(1000);
+  const samplePace = useLiveSeries(42);
+  const livePace = useMemo(() => buildTimingSeries(liveTiming.standings), [liveTiming.standings]);
+  const pace = sampleMode ? samplePace : livePace;
   const operationsClock = useMemo(() => {
     const fromSource = formatTimingClock(liveTiming.time_of_day);
     if (fromSource) return fromSource;
+    if (!sampleMode) return "Awaiting source";
     const total = 14 * 3600 + 32 * 60 + 35 + tick;
     const h = String(Math.floor(total / 3600)).padStart(2, "0");
     const m = String(Math.floor((total % 3600) / 60)).padStart(2, "0");
     const s = String(total % 60).padStart(2, "0");
     return `${h}:${m}:${s}`;
-  }, [liveTiming.time_of_day, tick]);
-  const pace = useLiveSeries(42);
+  }, [liveTiming.time_of_day, sampleMode, tick]);
   const liveEvents = intelligence.timeline.slice(0, 3);
   const leader = liveTiming.standings[0];
   const chaser = liveTiming.standings[1];
-  const liveTrackState =
-    String(liveTiming.track_state?.track_status || liveTiming.track_state?.status || "").trim() ||
-    RACE_STATUS.safetyCar;
+  const liveTrackState = trackStateValue(liveTiming);
   const operationChips = [
     { label: "Race", value: operationsClock },
-    { label: "Lap", value: leader?.laps ? `${leader.laps}` : RACE_STATUS.lap },
-    { label: "Track", value: liveTiming.track || RACE_STATUS.track, tone: "green" as const },
-    { label: "SC", value: liveTrackState },
+    {
+      label: "Lap",
+      value: leader?.laps ? `${leader.laps}` : sampleMode ? "184 / 372" : "Awaiting",
+    },
+    {
+      label: "Track",
+      value: liveTiming.track || (sampleMode ? "GREEN" : "Awaiting"),
+      tone: "green" as const,
+    },
+    { label: "SC", value: liveTrackState || (sampleMode ? "CLEAR" : "Awaiting") },
     {
       label: "Weather",
-      value: liveTiming.status === "live" ? "Awaiting weather" : RACE_STATUS.weather,
+      value:
+        liveTiming.status === "live"
+          ? "Awaiting source weather"
+          : sampleMode
+            ? "18C Dry"
+            : "Awaiting",
     },
   ];
   return (
@@ -777,22 +949,26 @@ function EngineeringCorePanel({
                     <XAxis dataKey="lap" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
                     <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
                     <Tooltip {...tooltipStyle} />
-                    <Area
-                      dataKey="car"
-                      stroke="var(--foreground)"
-                      fill="var(--foreground)"
-                      fillOpacity={0.1}
-                      strokeWidth={2}
-                      isAnimationActive={false}
-                    />
-                    <Area
-                      dataKey="rival"
-                      stroke="var(--racing-red)"
-                      fill="var(--racing-red)"
-                      fillOpacity={0.18}
-                      strokeWidth={2}
-                      isAnimationActive={false}
-                    />
+                    {pace.length > 0 && (
+                      <>
+                        <Area
+                          dataKey="car"
+                          stroke="var(--foreground)"
+                          fill="var(--foreground)"
+                          fillOpacity={0.1}
+                          strokeWidth={2}
+                          isAnimationActive={false}
+                        />
+                        <Area
+                          dataKey="rival"
+                          stroke="var(--racing-red)"
+                          fill="var(--racing-red)"
+                          fillOpacity={0.18}
+                          strokeWidth={2}
+                          isAnimationActive={false}
+                        />
+                      </>
+                    )}
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -801,25 +977,25 @@ function EngineeringCorePanel({
               <Metric
                 icon={<Timer className="h-4 w-4" />}
                 label="Leader"
-                value={leader ? `#${leader.car_no}` : "L186-190"}
+                value={leader ? `#${leader.car_no}` : sampleMode ? "L186-190" : "Awaiting"}
                 tone="red"
               />
               <Metric
                 icon={<Fuel className="h-4 w-4" />}
                 label="Gap to P2"
-                value={chaser?.gap || "+0.8L"}
+                value={chaser?.gap || (sampleMode ? "+0.8L" : "Awaiting")}
                 tone="yellow"
               />
               <Metric
                 icon={<Thermometer className="h-4 w-4" />}
                 label="Last lap"
-                value={leader?.last_lap || "62%"}
+                value={leader?.last_lap || (sampleMode ? "62%" : "Awaiting")}
                 tone="green"
               />
               <Metric
                 icon={<AlertTriangle className="h-4 w-4" />}
                 label="Risk watch"
-                value={leader?.state || "Traffic"}
+                value={leader?.state || (sampleMode ? "Traffic" : "Awaiting")}
               />
             </div>
           </div>
@@ -850,6 +1026,7 @@ function TelemetryStack({
   clearVersion,
   active,
   liveTiming,
+  sampleMode,
   onCircuitReportChange,
 }: {
   telemetryUrl: string;
@@ -857,11 +1034,16 @@ function TelemetryStack({
   clearVersion: number;
   active: boolean;
   liveTiming: LiveTimingSnapshot;
+  sampleMode: boolean;
   onCircuitReportChange: (report: CircuitReport | null) => void;
 }) {
-  const data = useLiveSeries(32);
+  const sampleData = useLiveSeries(32);
+  const data = sampleMode ? sampleData : buildTelemetrySeries(liveTiming.standings);
   const leader = liveTiming.standings[0];
   const topSpeed = leader?.sectors?.find((sector) => sector.speed)?.speed;
+  const strategy = sampleMode
+    ? { tireStatus: "62%", fuelMargin: "0.8L", pitWindow: "L186", traffic: "Clear" }
+    : liveStrategyMetrics(liveTiming.standings);
   return (
     <aside className="right-stack">
       <section className="ops-panel p-3">
@@ -877,11 +1059,21 @@ function TelemetryStack({
         {active ? (
           <>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              <StatusChip label="Speed" value={topSpeed ? String(topSpeed) : "307"} tone="red" />
-              <StatusChip label="Best" value={leader?.fastest_lap || "4"} tone="yellow" />
+              <StatusChip
+                label="Speed"
+                value={topSpeed ? String(topSpeed) : sampleMode ? "307" : "Awaiting"}
+                tone="red"
+              />
+              <StatusChip
+                label="Best"
+                value={leader?.fastest_lap || (sampleMode ? "4" : "Awaiting")}
+                tone="yellow"
+              />
               <StatusChip
                 label="Pit"
-                value={leader?.pit_count ? String(leader.pit_count) : "18%"}
+                value={
+                  leader?.pit_count ? String(leader.pit_count) : sampleMode ? "18%" : "Awaiting"
+                }
               />
             </div>
             <div className="mt-3 h-40">
@@ -921,27 +1113,31 @@ function TelemetryStack({
       </section>
       <section className="ops-panel p-3">
         <div className="ops-label">Strategy Impact</div>
-        {active ? (
+        {active && strategy ? (
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Metric
               icon={<Thermometer className="h-4 w-4" />}
               label="Tire status"
-              value="62%"
+              value={strategy.tireStatus}
               tone="green"
             />
             <Metric
               icon={<Fuel className="h-4 w-4" />}
               label="Fuel margin"
-              value="0.8L"
+              value={strategy.fuelMargin}
               tone="yellow"
             />
             <Metric
               icon={<Timer className="h-4 w-4" />}
               label="Pit window"
-              value="L186"
+              value={strategy.pitWindow}
               tone="red"
             />
-            <Metric icon={<Activity className="h-4 w-4" />} label="Traffic" value="Clear" />
+            <Metric
+              icon={<Activity className="h-4 w-4" />}
+              label="Traffic"
+              value={strategy.traffic}
+            />
           </div>
         ) : (
           <div className="mt-3">
@@ -989,13 +1185,26 @@ function Metric({
   );
 }
 
-function RaceControlFeed({ intelligence }: { intelligence: LiveIntelligenceSnapshot }) {
+function RaceControlFeed({
+  intelligence,
+  liveTiming,
+  sampleMode,
+}: {
+  intelligence: LiveIntelligenceSnapshot;
+  liveTiming: LiveTimingSnapshot;
+  sampleMode: boolean;
+}) {
   const liveEvents = intelligence.timeline.slice(0, 4).map((event) => ({
     t: "LIVE",
     kind: "STRATEGY",
     msg: `${event.title}: ${event.detail}`,
   }));
-  const events = liveEvents.length ? [...liveEvents, ...SEED_EVENTS].slice(0, 8) : [];
+  const timingEvents = liveTimingEvents(liveTiming.standings);
+  const events = [
+    ...liveEvents,
+    ...timingEvents,
+    ...(sampleMode && liveEvents.length ? SEED_EVENTS : []),
+  ].slice(0, 8);
   return (
     <section className="ops-panel p-3">
       <div className="ops-label flex items-center gap-2">
@@ -1017,9 +1226,20 @@ function RaceControlFeed({ intelligence }: { intelligence: LiveIntelligenceSnaps
   );
 }
 
-function AIEngineerPanel({ intelligence }: { intelligence: LiveIntelligenceSnapshot }) {
+function AIEngineerPanel({
+  intelligence,
+  liveTiming,
+  sampleMode,
+}: {
+  intelligence: LiveIntelligenceSnapshot;
+  liveTiming: LiveTimingSnapshot;
+  sampleMode: boolean;
+}) {
   const latest = intelligence.summaries[0]?.summary;
-  const active = Boolean(latest);
+  const alerts = sampleMode
+    ? AI_ALERTS.slice(0, 3)
+    : liveEngineerAlerts(liveTiming.standings, latest);
+  const active = alerts.length > 0;
   return (
     <section className="ops-panel p-3">
       <div className="ops-label flex items-center gap-2">
@@ -1029,13 +1249,13 @@ function AIEngineerPanel({ intelligence }: { intelligence: LiveIntelligenceSnaps
       <div className="mt-3 grid gap-2">
         {!active && <EmptyState>AI engineer alerts are blank until data is loaded.</EmptyState>}
         {active &&
-          AI_ALERTS.slice(0, 3).map((alert) => (
+          alerts.map((alert) => (
             <div key={alert.title} className="engineer-call">
               <strong>{alert.title}</strong>
               <p>{alert.msg}</p>
             </div>
           ))}
-        {latest && (
+        {latest && !alerts.some((alert) => alert.title === "Broadcast intelligence") && (
           <div className="engineer-call border-red-racing/50">
             <strong>Broadcast intelligence</strong>
             <p>{latest}</p>
@@ -1046,42 +1266,65 @@ function AIEngineerPanel({ intelligence }: { intelligence: LiveIntelligenceSnaps
   );
 }
 
-function TireDegradationStrip({ active }: { active: boolean }) {
+function TireDegradationStrip({
+  active,
+  liveTiming,
+  sampleMode,
+}: {
+  active: boolean;
+  liveTiming: LiveTimingSnapshot;
+  sampleMode: boolean;
+}) {
+  const tireData = sampleMode ? TIRE_DEG : liveTireDegradation(liveTiming.standings);
+  const explanation = explainTireCurve(tireData, sampleMode);
   return (
     <section className="ops-panel p-3">
-      <div className="ops-label">Tire Degradation Curve</div>
-      {active ? (
-        <div className="mt-3 h-40">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={TIRE_DEG}>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="2 4" vertical={false} />
-              <XAxis dataKey="lap" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
-              <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
-              <Tooltip {...tooltipStyle} />
-              <Line
-                dataKey="soft"
-                stroke="var(--racing-red)"
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-              <Line
-                dataKey="medium"
-                stroke="var(--sector-yellow)"
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-              <Line
-                dataKey="hard"
-                stroke="var(--foreground)"
-                strokeWidth={2}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="ops-label">Tire Degradation Curve</div>
+        {active && tireData.length > 0 && (
+          <div className="rounded border border-border bg-background px-2 py-1 text-[10px] uppercase text-muted-foreground">
+            AI explanation
+          </div>
+        )}
+      </div>
+      {active && tireData.length > 0 ? (
+        <>
+          <div className="mt-3 h-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={tireData}>
+                <CartesianGrid stroke="var(--border)" strokeDasharray="2 4" vertical={false} />
+                <XAxis dataKey="lap" tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
+                <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} />
+                <Tooltip {...tooltipStyle} />
+                <Line
+                  dataKey="soft"
+                  stroke="var(--racing-red)"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+                <Line
+                  dataKey="medium"
+                  stroke="var(--sector-yellow)"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+                <Line
+                  dataKey="hard"
+                  stroke="var(--foreground)"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="engineer-call mt-3">
+            <strong>AI tire read</strong>
+            <p>{explanation}</p>
+          </div>
+        </>
       ) : (
         <div className="mt-3">
           <EmptyState>
@@ -1101,6 +1344,7 @@ export function RaceCommandCenter() {
   const [telemetryUrl, setTelemetryUrl] = useState("");
   const [sampleVersion, setSampleVersion] = useState(0);
   const [clearVersion, setClearVersion] = useState(0);
+  const [sampleMode, setSampleMode] = useState(false);
   const handleIntelligenceUpdate = useCallback((snapshot: LiveIntelligenceSnapshot) => {
     setIntelligence(snapshot);
   }, []);
@@ -1109,6 +1353,7 @@ export function RaceCommandCenter() {
     setLiveTiming(EMPTY_LIVE_TIMING);
     setCircuitReport(DEMO_CIRCUIT_REPORT);
     setIntelligence(DEMO_LIVE_INTELLIGENCE);
+    setSampleMode(true);
     setSampleVersion((version) => version + 1);
   }, []);
   const clearAll = useCallback(() => {
@@ -1117,17 +1362,20 @@ export function RaceCommandCenter() {
     setLiveTiming(EMPTY_LIVE_TIMING);
     setCircuitReport(null);
     setIntelligence(EMPTY_LIVE_INTELLIGENCE);
+    setSampleMode(false);
     setClearVersion((version) => version + 1);
   }, []);
   const applyTelemetryUrl = useCallback(async (value: string) => {
     setTelemetryUrl(value);
     if (value === SAMPLE_TELEMETRY_URL) {
       setLiveTiming(EMPTY_LIVE_TIMING);
+      setSampleMode(false);
       return;
     }
     try {
       const snapshot = await setLiveTimingSource(value);
       setLiveTiming(snapshot);
+      setSampleMode(false);
     } catch (error) {
       setLiveTiming({
         ...EMPTY_LIVE_TIMING,
@@ -1135,14 +1383,16 @@ export function RaceCommandCenter() {
         status: "error",
         message: error instanceof Error ? error.message : "Live timing scrape failed.",
       });
+      setSampleMode(false);
     }
   }, []);
   const dashboardActive = Boolean(
-    sampleVersion > 0 ||
+    sampleMode ||
     liveTiming.status === "live" ||
     intelligence.summaries.length ||
     intelligence.timeline.length,
   );
+  const telemetryActive = sampleMode || liveTiming.status === "live";
 
   return (
     <main className="ops-shell">
@@ -1155,18 +1405,20 @@ export function RaceCommandCenter() {
         liveTiming={liveTiming}
       />
       <div className="ops-layout">
-        <LiveStandings active={dashboardActive} liveTiming={liveTiming} />
+        <LiveStandings active={dashboardActive} liveTiming={liveTiming} sampleMode={sampleMode} />
         <EngineeringCorePanel
           intelligence={intelligence}
           active={dashboardActive}
           liveTiming={liveTiming}
+          sampleMode={sampleMode}
         />
         <TelemetryStack
           telemetryUrl={telemetryUrl}
           sampleVersion={sampleVersion}
           clearVersion={clearVersion}
-          active={dashboardActive}
+          active={telemetryActive}
           liveTiming={liveTiming}
+          sampleMode={sampleMode}
           onCircuitReportChange={setCircuitReport}
         />
       </div>
@@ -1176,14 +1428,26 @@ export function RaceCommandCenter() {
           sampleVersion={sampleVersion}
           clearVersion={clearVersion}
         />
-        <RaceControlFeed intelligence={intelligence} />
+        <RaceControlFeed
+          intelligence={intelligence}
+          liveTiming={liveTiming}
+          sampleMode={sampleMode}
+        />
       </div>
       <div className="ops-bottom-grid">
-        <AIEngineerPanel intelligence={intelligence} />
+        <AIEngineerPanel
+          intelligence={intelligence}
+          liveTiming={liveTiming}
+          sampleMode={sampleMode}
+        />
         <IntelligenceTimeline snapshot={intelligence} />
       </div>
       <EntityMentionCards snapshot={intelligence} />
-      <TireDegradationStrip active={dashboardActive} />
+      <TireDegradationStrip
+        active={telemetryActive}
+        liveTiming={liveTiming}
+        sampleMode={sampleMode}
+      />
       <footer className="py-4 text-center text-[10px] uppercase leading-relaxed text-muted-foreground">
         <div>Shounak Shelke @May2026</div>
         <div>Project 2H4E Endurance Dashboard</div>

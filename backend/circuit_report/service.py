@@ -380,6 +380,8 @@ def _fallback_report(location: str, race_context: str, google: dict[str, str]) -
 
 def build_report(location: str, race_context: str | None = None) -> dict[str, Any]:
     clean_location = " ".join(location.strip().split())
+    if clean_location.lower() in {"nurburgring", "nurbergring"}:
+        clean_location = "Nürburgring"
     if len(clean_location) < 2:
         raise ValueError("Enter a circuit or place name.")
     context = race_context or "endurance race strategy"
@@ -462,6 +464,8 @@ def latest_report() -> dict[str, Any]:
 
 def change_image(location: str, current_image_url: str | None = None) -> dict[str, Any]:
     clean_location = " ".join(location.strip().split())
+    if clean_location.lower() in {"nurburgring", "nurbergring"}:
+        clean_location = "Nürburgring"
     if len(clean_location) < 2:
         raise ValueError("Enter a circuit or place name.")
     with connect() as conn:

@@ -16,14 +16,14 @@ export function CircuitReportPanel({
   clearVersion?: number;
   onReportChange?: (report: CircuitReport | null) => void;
 }) {
-  const [location, setLocation] = useState("Circuit de la Sarthe");
+  const [location, setLocation] = useState("Spa-Francorchamps");
   const [report, setReport] = useState<CircuitReport | null>(null);
   const [status, setStatus] = useState("Waiting for circuit location");
   const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     if (sampleVersion > 0) {
-      setLocation("Circuit de la Sarthe");
+      setLocation("Spa-Francorchamps");
       setReport(DEMO_CIRCUIT_REPORT);
       onReportChange?.(DEMO_CIRCUIT_REPORT);
       setStatus("Full sample circuit report loaded");
@@ -33,7 +33,7 @@ export function CircuitReportPanel({
 
   useEffect(() => {
     if (clearVersion > 0) {
-      setLocation("Circuit de la Sarthe");
+      setLocation("Spa-Francorchamps");
       setReport(null);
       onReportChange?.(null);
       setStatus("Waiting for circuit location");
@@ -76,7 +76,27 @@ export function CircuitReportPanel({
           : "No backend-approved circuit image found",
       );
     } catch {
-      setStatus("Change image failed; keep the current source image");
+      const candidates = report.image_candidates || [];
+      if (candidates.length > 1) {
+        const currentIndex = candidates.findIndex(
+          (candidate) => candidate.url === report.image_url,
+        );
+        const nextIndex = (currentIndex + 1) % candidates.length;
+        const nextCandidate = candidates[nextIndex];
+        const localReport = {
+          ...report,
+          image_url: nextCandidate.url,
+          image_index: nextIndex,
+          image_status: "circuit-image",
+          image_reason: nextCandidate.reason || "Local sample circuit image candidate.",
+        };
+        setReport(localReport);
+        onReportChange?.(localReport);
+        setZoom(1);
+        setStatus("Circuit image changed from local sample candidates");
+        return;
+      }
+      setStatus("No alternate circuit image is available from backend or sample candidates");
     }
   }
 

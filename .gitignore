@@ -19,6 +19,8 @@ __pycache__/
 *.py[cod]
 backend/*.sqlite3
 project-2h4e-smoke.png
+/project-2h4e-*.png
+/Screenshot *.png
 
 # Wrangler / Cloudflare
 .wrangler/

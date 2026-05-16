@@ -1,80 +1,139 @@
-# Project 2H4E Race Engineering Backend Architecture
+# Project 2H4E Backend Architecture
 
 ## Runtime Topology
 
-React TypeScript frontend connects to FastAPI over REST for blank-first data loading, sample mode, commentary summaries, circuit reports, and local websocket channels for realtime updates.
+```text
+React/TanStack frontend
+  -> REST calls through VITE_PROJECT_2H4E_API_BASE
+  -> Optional local websocket streams
 
-- REST base: `http://127.0.0.1:8000/api/engineering`
-- Websocket base: `ws://127.0.0.1:8000/ws`
-- Database: SQLite at `backend/race_engineering.sqlite3`
-- Scheduler: FastAPI lifespan starts local async loops unless `VERCEL=1` or `PROJECT_2H4E_DISABLE_BACKGROUND_TASKS=1`
+FastAPI backend
+  -> SQLite persistence
+  -> Live timing scraper
+  -> Commentary source summarizer
+  -> Circuit source/report service
+  -> Engineering analytics routers
 
-## Backend Modules
+External sources
+  -> Azure live timing websocket sources when user provides a supported URL
+  -> YouTube oEmbed/page metadata
+  -> Generic public commentary/video page metadata
+  -> Wikipedia summary API
+  -> Wikimedia image APIs
+  -> Optional Google Programmable Search
+  -> Optional Groq/primary AI
+```
 
-- `race_engineering`: API router, orchestration service, AI alerts, driver engineering
-- `telemetry`: sample realtime telemetry frame generation
-- `strategy_engine`: pit window optimizer, strategy simulator, reliability risk predictor
-- `fuel_models`: fuel burn and fuel-save estimation
-- `tire_models`: tire degradation, thermal stress, life remaining, pace-loss curves
-- `rival_analysis`: battle intensity, threat score, rival pit prediction
-- `live_intelligence`: race commentary source ingestion for YouTube and generic public commentary pages
-- `circuit_report`: Wikipedia/Wikimedia circuit reports with Google context links or API results
+## Modules
 
-## ML Model Upgrade Plan
+- `live_timing`: user-provided telemetry/live-timing source parsing, Azure websocket protocol support, and normalized standings.
+- `live_intelligence`: commentary source storage, YouTube metadata extraction, generic link extraction, summaries, entities, and timeline events.
+- `circuit_report`: Wikipedia search, page summaries, Google context, Wikimedia circuit-image candidate filtering, and image rotation.
+- `race_engineering`: engineering REST router and orchestration.
+- `telemetry`: telemetry-shaped sample frames for dashboard charts.
+- `strategy_engine`: pit-window, simulation, and reliability scaffolds.
+- `fuel_models`: fuel burn, laps remaining, and emergency-stop estimates.
+- `tire_models`: degradation, thermal stress, tire life, and pace-loss estimates.
+- `rival_analysis`: battle intensity, threat scoring, and rival comparison.
 
-The current predictors are deterministic scaffolds designed to be API-stable while training data is prepared.
+## Data Model
 
-- Replace `TireDegradationPredictor` internals with RandomForest or XGBoost regression over stint age, compound, track temp, driver, fuel load, and traffic.
-- Replace `FuelConsumptionPredictor` internals with XGBoost regression over lap speed, throttle trace, lift/coast percentage, weather, FCY periods, and stint target.
-- Replace `PitWindowOptimizer` internals with time-series forecasting plus Monte Carlo traffic simulation.
-- Replace `BattlePredictionEngine` internals with a classifier/regressor pair for pass probability and position threat.
-- Replace `ReliabilityRiskPredictor` internals with IsolationForest anomaly scoring over vibration, tire temp, brake temp, oil pressure, and ERS health.
-- Keep `StrategySimulationEngine` as the integration facade for alternate pit laps, tire choices, fuel modes, safety car impact, and rain strategy changes.
+SQLite stores:
 
-## API Contract
+- `youtube_sources`
+- `caption_segments`
+- `race_summaries`
+- `summary_entities`
+- `timeline_events`
+- `circuit_reports`
+- `telemetry_snapshots`
+- `tire_metrics`
+- `fuel_metrics`
+- `strategy_predictions`
+- `rival_analysis`
+- `ai_engineer_alerts`
 
-- `POST /api/commentary/sources`: configure one or more commentary/video links
-- `GET /api/commentary/summaries`: latest race commentary intelligence snapshot
-- `POST /api/commentary/summarize-now`: summarize active commentary sources now
-- `POST /api/commentary/clear`: return commentary state to blank
-- `GET /telemetry`: speed, throttle, brake, tire temp, ERS deployment
-- `GET /tires`: degradation estimate, thermal stress, tire life, stint score
-- `GET /fuel`: burn rate, laps remaining, save mode, emergency pit prediction
-- `GET /strategy`: optimal pit window and strategy simulation outputs
-- `GET /rivals`: rival gap, pace delta, pit prediction, battle intensity
-- `GET /ai-alerts`: severity, confidence, message, explanation, timestamp
-- `GET /pit-window`: per-car optimal pit windows
-- `GET /degradation`: tire degradation curve for charting
-- `GET /battles`: active battle monitor data
+Circuit reports include:
 
-## Websocket Channels
+- `source_title`
+- `source_url`
+- `image_url`
+- `image_status`
+- `image_candidates`
+- `image_index`
+- `image_reason`
+- `data_source`
+- `source_status`
+- Google context fields
 
-- `/ws/telemetry`: telemetry graph updates
-- `/ws/strategy`: pit recommendations and simulation changes
-- `/ws/events`: AI engineer messages and race-control style alerts
-- `/ws/ml`: tire, fuel, degradation, reliability, and driver model output
-- `/ws/rivals`: direct competitor and battle-monitor updates
+## Circuit Image Safety
 
-## Frontend Integration
+The circuit service does not blindly trust Wikipedia thumbnails.
 
-Use REST for initial page load, then merge websocket updates into the existing command-center state.
+It accepts image candidates when filenames suggest:
 
-Suggested mapping:
+- circuit
+- track
+- layout
+- map
+- course
+- nordschleife
+- grand prix
+- route
+- strecke
 
-- Live timing and telemetry panels consume `/ws/telemetry`
-- Tire dashboard consumes `/api/engineering/tires` and `/ws/ml`
-- Fuel dashboard consumes `/api/engineering/fuel` and `/ws/ml`
-- Strategy timeline and pit visualizer consume `/api/engineering/strategy`, `/api/engineering/pit-window`, and `/ws/strategy`
-- AI engineer feed consumes `/api/engineering/ai-alerts` and `/ws/events`
-- Rival comparison consumes `/api/engineering/rivals`, `/api/engineering/battles`, and `/ws/rivals`
+It rejects candidates when filenames suggest:
 
-## Testing Checklist
+- logo
+- icon
+- seal
+- poster
+- portrait
+- podium
+- car
+- flag
+- badge
+- emblem
+- wordmark
 
-1. Start backend: `cd backend && uvicorn main:app --reload`.
-2. Confirm health: `GET http://127.0.0.1:8000/health`.
-3. Confirm REST: call `/api/engineering/strategy`, `/ai-alerts`, and `/degradation`.
-4. Confirm frontend: `npm run dev -- --host 127.0.0.1`.
-5. Open `http://127.0.0.1:5173/`.
-6. Confirm the frontend starts blank.
-7. Press `Load Full Sample` to expose the sample data packet.
-8. Press `Clear` to return to blank state.
+If no approved image exists, the API returns `image_status: "no-circuit-image"` and an empty `image_url`.
+
+## AI Provider Flow
+
+```text
+User links
+  -> source metadata/text extraction
+  -> primary AI if configured
+  -> Groq fallback if GROQ_API_KEY exists
+  -> deterministic labeled fallback
+  -> summary + entities + timeline events
+```
+
+## Deployment Modes
+
+Local:
+
+- Full REST.
+- Local websocket endpoints.
+- Background tasks enabled unless disabled.
+
+Vercel:
+
+- REST/serverless endpoints.
+- Background tasks disabled with `PROJECT_2H4E_DISABLE_BACKGROUND_TASKS=1`.
+- Persistent websocket streaming should be hosted elsewhere for production realtime use.
+
+## Verification Checklist
+
+```bash
+python -m compileall backend api
+```
+
+API checks:
+
+- `GET /health`
+- `POST /api/circuits/report`
+- `POST /api/circuits/report/change-image`
+- `POST /api/commentary/sources`
+- `GET /api/commentary/summaries`
+- `POST /api/live-timing/source`

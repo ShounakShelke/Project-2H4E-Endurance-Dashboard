@@ -239,7 +239,14 @@ export function IntelligenceTimeline({ snapshot }: { snapshot: LiveIntelligenceS
 }
 
 export function EntityMentionCards({ snapshot }: { snapshot: LiveIntelligenceSnapshot }) {
-  const entities = snapshot.entities.slice(0, 8);
+  const entities = Array.from(
+    new Map(
+      snapshot.entities.map((entity) => [
+        `${entity.entity_type}:${entity.label}`.toLowerCase(),
+        entity,
+      ]),
+    ).values(),
+  );
   return (
     <section className="ops-panel p-3">
       <div className="ops-label">Cars and Teams Mentioned</div>

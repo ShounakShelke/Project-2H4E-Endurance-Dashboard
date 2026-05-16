@@ -740,13 +740,27 @@
   }
 
   @media print {
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      margin: 10mm;
+      background: black;
+    }
+
     body {
-      background: white !important;
-      color: black !important;
+      background: black !important;
+      color: white !important;
     }
 
     .ops-shell {
-      background: white !important;
+      background:
+        linear-gradient(color-mix(in oklab, white 5%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in oklab, white 5%, transparent) 1px, transparent 1px),
+        black !important;
+      background-size: 34px 34px !important;
       padding: 0;
     }
 
@@ -754,9 +768,23 @@
     .ops-panel {
       break-inside: avoid;
       box-shadow: none;
-      background: white !important;
-      color: black !important;
-      border-color: #111 !important;
+      background: oklch(0.08 0 0) !important;
+      color: white !important;
+      border-color: oklch(0.28 0 0) !important;
+    }
+
+    .metric-box,
+    .mention-card,
+    .event-line,
+    .engineer-call,
+    .timeline-row,
+    .comparison-card,
+    .comparison-dashboard,
+    .comparison-stat,
+    .comparison-sector {
+      background: black !important;
+      color: white !important;
+      border-color: oklch(0.28 0 0) !important;
     }
 
     .ops-layout,
