@@ -361,6 +361,7 @@ const EXTRA_CARS: Car[] = GENERATED_TEAMS.map((item, i) => {
 });
 
 const CARS: Car[] = [...BASE_CARS, ...EXTRA_CARS];
+export const ALL_CARS: Car[] = CARS;
 
 export type RaceEvent = {
   t: string;

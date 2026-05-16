@@ -47,6 +47,21 @@ def rivals() -> dict:
 
 
 def ai_alerts() -> dict:
+    try:
+        from live_intelligence.service import summary_events_for_feed
+
+        live_events = summary_events_for_feed()
+    except Exception:
+        live_events = []
+    intelligence_alerts = [
+        {
+            "severity": event.get("severity", "info"),
+            "confidence": 0.76,
+            "message": event.get("title", "Live intelligence update"),
+            "explanation": event.get("detail", ""),
+        }
+        for event in live_events
+    ]
     return {
         "timestamp": now(),
         "alerts": [
@@ -74,6 +89,7 @@ def ai_alerts() -> dict:
                 "message": "Reliability vibration trend above baseline.",
                 "explanation": "Isolation-style anomaly score is rising on car #51 rear axle telemetry.",
             },
+            *intelligence_alerts,
         ],
     }
 
@@ -91,6 +107,12 @@ def battles() -> dict:
 
 
 def build_snapshot() -> dict:
+    try:
+        from live_intelligence.service import latest_snapshot
+
+        live_intelligence = latest_snapshot()
+    except Exception:
+        live_intelligence = {"source": None, "summaries": [], "entities": [], "timeline": [], "mode": "offline"}
     return {
         "telemetry": telemetry(),
         "strategy": strategy(),
@@ -106,4 +128,5 @@ def build_snapshot() -> dict:
             },
         },
         "rivals": rivals(),
+        "live-intelligence": live_intelligence,
     }
