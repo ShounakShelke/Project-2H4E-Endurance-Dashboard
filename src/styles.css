@@ -72,7 +72,7 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.64 0.25 27);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.20 0 0);
+  --secondary: oklch(0.2 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.18 0 0);
   --muted-foreground: oklch(0.68 0 0);
@@ -86,8 +86,8 @@
   --chart-1: oklch(0.985 0 0);
   --chart-2: oklch(0.64 0.25 27);
   --chart-3: oklch(0.87 0.17 95);
-  --chart-4: oklch(0.76 0.20 145);
-  --chart-5: oklch(0.50 0.22 27);
+  --chart-4: oklch(0.76 0.2 145);
+  --chart-5: oklch(0.5 0.22 27);
   --sidebar: oklch(0.115 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.64 0.25 27);
@@ -102,13 +102,17 @@
   --neon-blue: oklch(0.64 0.25 27);
   --racing-red: oklch(0.64 0.25 27);
   --sector-yellow: oklch(0.87 0.17 95);
-  --sector-green: oklch(0.76 0.20 145);
+  --sector-green: oklch(0.76 0.2 145);
   --sector-purple: oklch(0.64 0.25 27);
   --tire-orange: oklch(0.64 0.25 27);
   --pit-purple: oklch(0.64 0.25 27);
 
   --gradient-panel: linear-gradient(160deg, oklch(0.16 0 0) 0%, oklch(0.105 0 0) 100%);
-  --gradient-glow: radial-gradient(circle at 50% 0%, color-mix(in oklab, var(--racing-red) 18%, transparent), transparent 70%);
+  --gradient-glow: radial-gradient(
+    circle at 50% 0%,
+    color-mix(in oklab, var(--racing-red) 18%, transparent),
+    transparent 70%
+  );
   --shadow-glow: 0 0 24px -4px color-mix(in oklab, var(--racing-red) 45%, transparent);
   --shadow-panel: 0 8px 32px -12px oklch(0 0 0 / 0.78);
   --carbon: repeating-linear-gradient(45deg, oklch(0.16 0 0) 0 2px, oklch(0.105 0 0) 2px 4px);
@@ -127,8 +131,16 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     background-image:
-      radial-gradient(1200px 600px at 20% -10%, color-mix(in oklab, var(--racing-red) 10%, transparent), transparent 60%),
-      radial-gradient(900px 500px at 110% 10%, color-mix(in oklab, var(--foreground) 5%, transparent), transparent 60%);
+      radial-gradient(
+        1200px 600px at 20% -10%,
+        color-mix(in oklab, var(--racing-red) 10%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at 110% 10%,
+        color-mix(in oklab, var(--foreground) 5%, transparent),
+        transparent 60%
+      );
     background-attachment: fixed;
     font-family: "Google Sans", Arial, Helvetica, sans-serif;
     font-feature-settings: "ss01", "cv11";
@@ -140,7 +152,11 @@
 }
 
 @layer utilities {
-  .font-mono-tele { font-family: "Google Sans", Arial, Helvetica, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: 0 !important; }
+  .font-mono-tele {
+    font-family: "Google Sans", Arial, Helvetica, sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0 !important;
+  }
   .panel {
     background: var(--gradient-panel);
     border: 1px solid var(--color-border);
@@ -151,7 +167,8 @@
   }
   .panel-glow::before {
     content: "";
-    position: absolute; inset: 0;
+    position: absolute;
+    inset: 0;
     background: var(--gradient-glow);
     pointer-events: none;
     opacity: 0.6;
@@ -160,37 +177,111 @@
   .command-bg {
     background-image:
       linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px);
+      linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      );
     background-size: 28px 28px;
   }
-  .live-timing-panel { width: 100%; }
-  .carbon-bg { background: var(--carbon); }
-  .text-cyan { color: var(--neon-cyan); }
-  .text-red-racing { color: var(--racing-red); }
-  .text-yellow-sector { color: var(--sector-yellow); }
-  .text-green-sector { color: var(--sector-green); }
-  .text-purple-sector { color: var(--sector-purple); }
-  .bg-cyan { background-color: var(--neon-cyan); }
-  .bg-red-racing { background-color: var(--racing-red); }
-  .bg-yellow-sector { background-color: var(--sector-yellow); }
-  .bg-green-sector { background-color: var(--sector-green); }
-  .bg-purple-sector { background-color: var(--sector-purple); }
-  .glow-cyan { box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent); }
-  .glow-red { box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent); }
-
-  @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
-  .live-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
-
-  @keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(2400%); } }
-  .scanline::after {
-    content: ""; position: absolute; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--racing-red), transparent);
-    opacity: 0.4; animation: scan 6s linear infinite;
+  .live-timing-panel {
+    width: 100%;
+  }
+  .carbon-bg {
+    background: var(--carbon);
+  }
+  .text-cyan {
+    color: var(--neon-cyan);
+  }
+  .text-red-racing {
+    color: var(--racing-red);
+  }
+  .text-yellow-sector {
+    color: var(--sector-yellow);
+  }
+  .text-green-sector {
+    color: var(--sector-green);
+  }
+  .text-purple-sector {
+    color: var(--sector-purple);
+  }
+  .bg-cyan {
+    background-color: var(--neon-cyan);
+  }
+  .bg-red-racing {
+    background-color: var(--racing-red);
+  }
+  .bg-yellow-sector {
+    background-color: var(--sector-yellow);
+  }
+  .bg-green-sector {
+    background-color: var(--sector-green);
+  }
+  .bg-purple-sector {
+    background-color: var(--sector-purple);
+  }
+  .glow-cyan {
+    box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent);
+  }
+  .glow-red {
+    box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent);
   }
 
-  @keyframes flash-row { 0% { background: color-mix(in oklab, var(--racing-red) 30%, transparent); } 100% { background: transparent; } }
-  .flash { animation: flash-row 1.2s ease-out; }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.85);
+    }
+  }
+  .live-dot {
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
 
-  @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-  .ticker { animation: ticker 40s linear infinite; }
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(2400%);
+    }
+  }
+  .scanline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--racing-red), transparent);
+    opacity: 0.4;
+    animation: scan 6s linear infinite;
+  }
+
+  @keyframes flash-row {
+    0% {
+      background: color-mix(in oklab, var(--racing-red) 30%, transparent);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  .flash {
+    animation: flash-row 1.2s ease-out;
+  }
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  .ticker {
+    animation: ticker 40s linear infinite;
+  }
 }

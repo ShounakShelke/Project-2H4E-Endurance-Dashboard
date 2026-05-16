@@ -20,10 +20,18 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Race Engineering Command Center - EnduroVision AI" },
-      { name: "description", content: "Realtime endurance racing telemetry, pit strategy, AI race engineer, and command center for WEC, Le Mans, Daytona, and N24." },
-      { property: "og:title", content: "Race Engineering Command Center - EnduroVision AI" },
-      { property: "og:description", content: "Pit-wall software with live timing, tire engineering, fuel strategy, AI recommendations, and rival analysis." },
+      { title: "Project 2H4E - Race Engineering Command Center" },
+      {
+        name: "description",
+        content:
+          "Realtime endurance racing telemetry, pit strategy, AI race engineer, and command center for WEC, Le Mans, Daytona, and N24.",
+      },
+      { property: "og:title", content: "Project 2H4E - Race Engineering Command Center" },
+      {
+        property: "og:description",
+        content:
+          "Pit-wall software with live timing, tire engineering, fuel strategy, AI recommendations, and rival analysis.",
+      },
     ],
   }),
   component: Index,
@@ -37,7 +45,7 @@ function Index() {
 
   return (
     <main className="min-h-screen w-full p-2 command-bg">
-      <h1 className="sr-only">Race Engineering Command Center - EnduroVision AI</h1>
+      <h1 className="sr-only">Project 2H4E - Race Engineering Command Center</h1>
 
       <div className="flex flex-col gap-2">
         <TopBar />
@@ -85,7 +93,7 @@ function Index() {
         </div>
 
         <footer className="text-[10px] uppercase text-muted-foreground text-center py-2">
-          EnduroVision AI | Race Engineering Command Center | WS LIVE | v2.4.0
+          Project 2H4E | Race Engineering Command Center | WS LIVE | v2.4.0
         </footer>
       </div>
     </main>

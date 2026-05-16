@@ -15,6 +15,10 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+__pycache__/
+*.py[cod]
+backend/*.sqlite3
+project-2h4e-smoke.png
 
 # Wrangler / Cloudflare
 .wrangler/

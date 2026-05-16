@@ -5,14 +5,17 @@ from datetime import datetime, timezone
 from fuel_models.predictor import FuelConsumptionPredictor
 from rival_analysis.engine import BattlePredictionEngine
 from strategy_engine.optimizer import PitWindowOptimizer, StrategySimulationEngine
+from strategy_engine.reliability import ReliabilityRiskPredictor
 from telemetry.generator import telemetry_frame
 from tire_models.predictor import TireDegradationPredictor
+from race_engineering.driver import driver_engineering
 
 tire_model = TireDegradationPredictor()
 fuel_model = FuelConsumptionPredictor()
 pit_model = PitWindowOptimizer()
 battle_model = BattlePredictionEngine()
 sim_model = StrategySimulationEngine()
+reliability_model = ReliabilityRiskPredictor()
 
 
 def now() -> str:
@@ -65,6 +68,12 @@ def ai_alerts() -> dict:
                 "message": "Pace improving in sector 2.",
                 "explanation": "Throttle trace stability improved across the last four laps.",
             },
+            {
+                "severity": "warning",
+                "confidence": 0.81,
+                "message": "Reliability vibration trend above baseline.",
+                "explanation": "Isolation-style anomaly score is rising on car #51 rear axle telemetry.",
+            },
         ],
     }
 
@@ -86,6 +95,15 @@ def build_snapshot() -> dict:
         "telemetry": telemetry(),
         "strategy": strategy(),
         "events": {"timestamp": now(), "events": ai_alerts()["alerts"]},
-        "ml": {"timestamp": now(), "models": {"tire": tires(), "fuel": fuel(), "degradation": degradation()}},
+        "ml": {
+            "timestamp": now(),
+            "models": {
+                "tire": tires(),
+                "fuel": fuel(),
+                "degradation": degradation(),
+                "reliability": reliability_model.predict("51", vibration_index=0.64, tire_temp_c=96.2),
+                "driver": [driver_engineering("7"), driver_engineering("51")],
+            },
+        },
         "rivals": rivals(),
     }

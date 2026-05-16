@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
         task.cancel()
 
 
-app = FastAPI(title="EnduroVision AI Race Engineering Command Center", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Project 2H4E Race Engineering Command Center", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
