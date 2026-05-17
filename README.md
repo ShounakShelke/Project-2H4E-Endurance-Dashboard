@@ -6,6 +6,14 @@ Project 2H4E is a professional endurance-racing command dashboard for live timin
 
 ## Current Preview
 
+### Video Overview
+
+<video src="docs/Video/Project%202H4E%20Quick%20Review.mp4" controls="controls" muted="muted" playsinline="playsinline" style="max-width: 100%;"></video>
+
+[View Quick Review Video](docs/Video/Project%202H4E%20Quick%20Review.mp4)
+
+### Screenshots
+
 ![Project 2H4E Live Standings](docs/assets/screenshots/live-standings.png)
 
 ![Project 2H4E Strategy and Risk Desk](docs/assets/screenshots/strategy-desk.png)
