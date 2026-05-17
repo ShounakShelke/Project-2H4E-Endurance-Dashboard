@@ -1,6 +1,6 @@
 # Project 2H4E Endurance Dashboard
 
-Created with love by Shounak Shelke.
+Created with ❤️ by Shounak Shelke.
 
 Project 2H4E is a professional endurance-racing command dashboard for live timing, race commentary intelligence, circuit reporting, telemetry-style operations panels, and print-ready race reports. It is designed for NLS, GT-World, Le Mans, Spa, Nurburgring, and other 4-24 hour endurance formats.
 
@@ -8,9 +8,9 @@ Project 2H4E is a professional endurance-racing command dashboard for live timin
 
 ### Video Overview
 
-<video src="docs/Video/Project%202H4E%20Quick%20Review.mp4" controls="controls" muted="muted" playsinline="playsinline" style="max-width: 100%;"></video>
+<iframe src="https://drive.google.com/file/d/1ues-km2G5J7L3PWdp_T2feOYEb8pQ3Of/preview" width="100%" height="480" allow="autoplay" allowfullscreen></iframe>
 
-[View Quick Review Video](docs/Video/Project%202H4E%20Quick%20Review.mp4)
+[Watch Project Video on Google Drive](https://drive.google.com/file/d/1ues-km2G5J7L3PWdp_T2feOYEb8pQ3Of/view?usp=sharing)
 
 ### Screenshots
 
@@ -20,9 +20,9 @@ Project 2H4E is a professional endurance-racing command dashboard for live timin
 
 ![Project 2H4E Circuit Report and Analysis](docs/assets/screenshots/circuit-report.png)
 
-![Project 2H4E Intelligence and Tire Degradation](docs/assets/screenshots/intelligence-tires.png)
+![Project 2H4E Intelligence and Race Comparison](docs/assets/screenshots/intelligence-tires.png)
 
-![Project 2H4E Race Comparison](docs/assets/screenshots/race-comparison.png)
+![Project 2H4E Tire Degradation Chart](docs/assets/screenshots/race-comparison.png)
 
 ## Architecture
 
