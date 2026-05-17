@@ -8,9 +8,7 @@ Project 2H4E is a professional endurance-racing command dashboard for live timin
 
 ### Video Overview
 
-<iframe src="https://drive.google.com/file/d/1ues-km2G5J7L3PWdp_T2feOYEb8pQ3Of/preview" width="100%" height="480" allow="autoplay" allowfullscreen></iframe>
-
-[Watch Project Video on Google Drive](https://drive.google.com/file/d/1ues-km2G5J7L3PWdp_T2feOYEb8pQ3Of/view?usp=sharing)
+▶️ **[Watch Project Video on Google Drive](https://drive.google.com/file/d/1ues-km2G5J7L3PWdp_T2feOYEb8pQ3Of/view?usp=sharing)**
 
 ### Screenshots
 
