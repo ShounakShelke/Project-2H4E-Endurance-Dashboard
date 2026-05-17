@@ -221,15 +221,45 @@ def metadata_summary(transcript: str) -> str | None:
     hash_match = re.search(r"Hashtags/entities:\s*([^\.]+)", transcript)
     desc_match = re.search(r"Description context:\s*([^\.]+(?:\.[^\.]+)?)", transcript)
     channel_match = re.search(r"Channel:\s*([^\.]+)", transcript)
+    live_match = re.search(r"Live status:\s*([^\.]+)", transcript)
     channel = channel_match.group(1).strip() if channel_match else "source"
     hashtags = hash_match.group(1).strip() if hash_match else "not exposed"
     description = desc_match.group(1).strip() if desc_match else "metadata context available"
+    live_status = live_match.group(1).strip() if live_match else "unknown"
+    mentioned = ", ".join(sorted(set(re.findall(r"#\d{1,3}", f"{title} {hashtags} {description}"))))
+    if not mentioned:
+        mentioned = "no car numbers exposed in public metadata"
+    focus_bits = []
+    lowered = f"{title} {description} {hashtags}".lower()
+    if "24h" in lowered or "nürburgring" in lowered or "nurburgring" in lowered:
+        focus_bits.append("endurance race control, pit-cycle timing, traffic risk, and night/weather evolution")
+    if "live timing" in lowered:
+        focus_bits.append("cross-check this broadcast context with the connected timing feed")
+    likely_focus = "; ".join(focus_bits) or "source context is connected; detailed incidents need captions, AI, or manual commentary text"
     return (
-        f"Commentary source connected: {title} from {channel}. The dashboard accepted {source} "
-        f"as a valid race commentary input. Metadata summary includes {hashtags}. Context: "
-        f"{description}. Public captions were not exposed, so this is source metadata + AI ready, "
-        "not demo fallback."
+        f"Broadcast Context: {title} from {channel} is connected as a race commentary source "
+        f"({source}). Live status from public metadata is {live_status}. "
+        f"Likely Race Focus: {likely_focus}. "
+        f"Mentioned Cars: {mentioned}. "
+        f"Strategy Relevance: use this source as broadcast context while timing data confirms leaders, "
+        "pit windows, tire loss, and incidents. Public captions were not exposed, so this is a "
+        "metadata-based engineering summary, not demo fallback. "
+        "Confidence: medium."
     )
+
+
+def action_detail(summary: str, entities: list[dict[str, str]]) -> str:
+    cars = [entity["label"] for entity in entities if entity["type"] == "car"]
+    teams = [entity["label"] for entity in entities if entity["type"] == "team"]
+    if "metadata-based engineering summary" in summary:
+        car_text = ", ".join(cars[:4]) if cars else "no public car numbers"
+        team_text = ", ".join(teams[:3]) if teams else "race broadcast"
+        return (
+            f"Metadata source is connected for {team_text}; watch {car_text}. "
+            "Use live timing for confirmed gaps, pit calls, and incidents until captions become available."
+        )
+    first_sentence = re.split(r"(?<=[.!?])\s+", summary.strip())[0]
+    return first_sentence[:260]
 
 
 def deterministic_summary(transcript: str) -> tuple[str, str, float, str]:
@@ -317,6 +347,8 @@ def extract_entities(summary: str) -> list[dict[str, str]]:
 
 def classify_event(summary: str) -> tuple[str, str, str]:
     lowered = summary.lower()
+    if "metadata-based engineering summary" in lowered or "broadcast context" in lowered:
+        return "summary", "Broadcast context connected", "info"
     if "pit" in lowered:
         return "strategy", "Pit cycle intelligence", "warning"
     if "tire" in lowered:
@@ -397,9 +429,10 @@ def create_summary(source_id: int | None = None) -> dict[str, Any]:
             event_type, event_title, severity = classify_event(summary)
             car = next((e["label"] for e in entities if e["type"] == "car"), None)
             team = next((e["label"] for e in entities if e["type"] == "team"), None)
+            detail = action_detail(summary, entities)
             conn.execute(
                 "INSERT INTO timeline_events (source, event_type, title, detail, car_no, team, severity) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                ("race-commentary", event_type, event_title, summary, car, team, severity),
+                ("race-commentary", event_type, event_title, detail, car, team, severity),
             )
             conn.execute(
                 """
@@ -449,12 +482,22 @@ def latest_snapshot() -> dict[str, Any]:
                         (latest_summary_id,),
                     ).fetchall()
                 ]
-            timeline = [
+            raw_timeline = [
                 dict(row)
                 for row in conn.execute(
-                    "SELECT * FROM timeline_events WHERE source = 'race-commentary' ORDER BY id DESC LIMIT 10",
+                    "SELECT * FROM timeline_events WHERE source = 'race-commentary' ORDER BY id DESC LIMIT 24",
                 ).fetchall()
             ]
+            timeline = []
+            seen_details = set()
+            for event in raw_timeline:
+                key = re.sub(r"\s+", " ", str(event.get("detail", "")).strip().lower())
+                if key in seen_details:
+                    continue
+                seen_details.add(key)
+                timeline.append(event)
+                if len(timeline) >= 10:
+                    break
         else:
             timeline = []
     mode = "blank"

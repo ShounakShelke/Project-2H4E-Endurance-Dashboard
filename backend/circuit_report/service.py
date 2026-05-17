@@ -284,6 +284,104 @@ def _google_context(location: str) -> dict[str, str]:
     }
 
 
+def _weather_code_label(code: int | None) -> str:
+    if code is None:
+        return "unknown"
+    if code == 0:
+        return "clear"
+    if code in {1, 2, 3}:
+        return "partly cloudy"
+    if code in {45, 48}:
+        return "fog"
+    if code in {51, 53, 55, 56, 57}:
+        return "drizzle"
+    if code in {61, 63, 65, 66, 67, 80, 81, 82}:
+        return "rain"
+    if code in {71, 73, 75, 77, 85, 86}:
+        return "snow"
+    if code in {95, 96, 99}:
+        return "thunderstorm"
+    return "mixed"
+
+
+def _weather_context(location: str) -> dict[str, Any]:
+    fallback = {
+        "weather_summary": "Weather unavailable for this circuit location.",
+        "weather_temperature_c": None,
+        "weather_condition": "unavailable",
+        "weather_wind_kph": None,
+        "weather_source_status": "unavailable",
+        "weather_source": "Open-Meteo",
+    }
+    try:
+        weather_location = location
+        lowered = location.lower()
+        known_coordinates: tuple[float, float, str] | None = None
+        if "n\u00fcrburgring" in lowered or "nurburgring" in lowered:
+            weather_location = "N\u00fcrburg"
+            known_coordinates = (50.3356, 6.9475, "N\u00fcrburgring, Germany")
+        elif "spa" in lowered:
+            weather_location = "Stavelot"
+            known_coordinates = (50.4372, 5.9714, "Spa-Francorchamps, Belgium")
+        elif "sarthe" in lowered or "lemans" in lowered or "le mans" in lowered:
+            weather_location = "Le Mans"
+            known_coordinates = (47.9566, 0.2077, "Circuit de la Sarthe, France")
+        if known_coordinates:
+            latitude, longitude, place = known_coordinates
+        else:
+            search = urlencode(
+                {"name": weather_location, "count": "1", "language": "en", "format": "json"}
+            )
+            geocoded = _request_json(f"https://geocoding-api.open-meteo.com/v1/search?{search}")
+            result = (geocoded.get("results") or [None])[0]
+            if not result:
+                return {**fallback, "weather_summary": f"Weather lookup could not resolve {location}."}
+            latitude = result.get("latitude")
+            longitude = result.get("longitude")
+            place = ", ".join(
+                item
+                for item in [
+                    str(result.get("name") or "").strip(),
+                    str(result.get("country") or "").strip(),
+                ]
+                if item
+            )
+        forecast_query = urlencode(
+            {
+                "latitude": latitude,
+                "longitude": longitude,
+                "current": "temperature_2m,weather_code,wind_speed_10m",
+                "timezone": "auto",
+            }
+        )
+        forecast = _request_json(f"https://api.open-meteo.com/v1/forecast?{forecast_query}")
+        current = forecast.get("current", {})
+        temperature = current.get("temperature_2m")
+        wind = current.get("wind_speed_10m")
+        condition = _weather_code_label(current.get("weather_code"))
+        temp_text = f"{float(temperature):.1f}C" if temperature is not None else "unknown temp"
+        wind_text = f"{float(wind):.0f} kph wind" if wind is not None else "unknown wind"
+        return {
+            "weather_summary": f"{place or location}: {temp_text}, {condition}, {wind_text}.",
+            "weather_temperature_c": temperature,
+            "weather_condition": condition,
+            "weather_wind_kph": wind,
+            "weather_source_status": "live",
+            "weather_source": "Open-Meteo",
+        }
+    except Exception:
+        return fallback
+
+
+def _normalize_location(location: str) -> str:
+    clean_location = " ".join(location.strip().split())
+    normalized = clean_location.lower()
+    mojibake = "n" + "\u00e3" + "\u00bc" + "rburgring"
+    if normalized in {"nurburgring", "nurbergring", "nuerburgring", mojibake}:
+        return "N\u00fcrburgring"
+    return clean_location
+
+
 def _clean_extract(text: str) -> str:
     clean = re.sub(r"\s+", " ", text or "").strip()
     return clean[:900] if clean else ""
@@ -294,6 +392,7 @@ def _derive_report_from_source(
     race_context: str,
     summary: dict[str, Any],
     google: dict[str, str],
+    weather: dict[str, Any],
 ) -> dict[str, Any]:
     extract = _clean_extract(summary.get("extract", ""))
     title = summary.get("title") or location
@@ -351,20 +450,23 @@ def _derive_report_from_source(
         ),
         "source_status": "live",
         **google,
+        **weather,
     }
 
 
-def _fallback_report(location: str, race_context: str, google: dict[str, str]) -> dict[str, Any]:
+def _fallback_report(
+    location: str, race_context: str, google: dict[str, str], weather: dict[str, Any]
+) -> dict[str, Any]:
     return {
         "location": location,
         "race_context": race_context,
         "overview": (
-            f"Live Wikipedia lookup was unavailable for {location}. This fallback keeps the dashboard testable while the backend retries external circuit sources."
+            f"Live Wikipedia lookup was unavailable for {location}. Source-backed circuit details are not confirmed yet; rebuild the report when external lookup is available."
         ),
-        "overtaking_zones": "Use the longest approach to a heavy braking zone as the primary passing area, then evaluate secondary moves from live sector and gap data.",
-        "tire_fuel_notes": "Protect tires at the start of the stint, use lift-and-coast before the biggest braking references, and update fuel targets from live telemetry.",
-        "risk_areas": "Fallback mode cannot confirm exact layout hazards, so flag pit exit, cold tires, local yellows, and weather as high-priority checks.",
-        "recommendations": "Enter the exact circuit name and rebuild when internet access is available. Until then, use the sample telemetry and live intelligence panels for a complete demo.",
+        "overtaking_zones": "No source-backed overtaking zones are available from Wikipedia/Wikimedia for this lookup.",
+        "tire_fuel_notes": "No source-backed tire or fuel implications are available until the circuit lookup succeeds.",
+        "risk_areas": "Treat pit exit, cold tires, local yellows, traffic, and weather as manual engineer checks until live circuit data loads.",
+        "recommendations": "Rebuild with the exact circuit name or check the source links. Do not treat this fallback as confirmed circuit intelligence.",
         "source_title": location,
         "source_url": f"https://en.wikipedia.org/wiki/Special:Search?search={quote(location)}",
         "image_url": "",
@@ -375,25 +477,25 @@ def _fallback_report(location: str, race_context: str, google: dict[str, str]) -
         "data_source": "Wikipedia lookup fallback",
         "source_status": "fallback",
         **google,
+        **weather,
     }
 
 
 def build_report(location: str, race_context: str | None = None) -> dict[str, Any]:
-    clean_location = " ".join(location.strip().split())
-    if clean_location.lower() in {"nurburgring", "nurbergring"}:
-        clean_location = "Nürburgring"
+    clean_location = _normalize_location(location)
     if len(clean_location) < 2:
         raise ValueError("Enter a circuit or place name.")
     context = race_context or "endurance race strategy"
     google = _google_context(clean_location)
+    weather = _weather_context(clean_location)
     try:
         page = _find_wikipedia_page(clean_location)
         if not page:
             raise URLError("No Wikipedia result")
         summary = _wikipedia_summary(page["title"])
-        report = _derive_report_from_source(clean_location, context, summary, google)
+        report = _derive_report_from_source(clean_location, context, summary, google, weather)
     except Exception:
-        report = _fallback_report(clean_location, context, google)
+        report = _fallback_report(clean_location, context, google, weather)
 
     with connect() as conn:
         cursor = conn.execute(
@@ -419,9 +521,15 @@ def build_report(location: str, race_context: str | None = None) -> dict[str, An
                 google_source_title,
                 google_source_url,
                 google_source_snippet,
-                google_status
+                google_status,
+                weather_summary,
+                weather_temperature_c,
+                weather_condition,
+                weather_wind_kph,
+                weather_source_status,
+                weather_source
               )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 report["location"],
@@ -444,6 +552,12 @@ def build_report(location: str, race_context: str | None = None) -> dict[str, An
                 report["google_source_url"],
                 report["google_source_snippet"],
                 report["google_status"],
+                report["weather_summary"],
+                report["weather_temperature_c"],
+                report["weather_condition"],
+                report["weather_wind_kph"],
+                report["weather_source_status"],
+                report["weather_source"],
             ),
         )
         conn.commit()
@@ -463,9 +577,7 @@ def latest_report() -> dict[str, Any]:
 
 
 def change_image(location: str, current_image_url: str | None = None) -> dict[str, Any]:
-    clean_location = " ".join(location.strip().split())
-    if clean_location.lower() in {"nurburgring", "nurbergring"}:
-        clean_location = "Nürburgring"
+    clean_location = _normalize_location(location)
     if len(clean_location) < 2:
         raise ValueError("Enter a circuit or place name.")
     with connect() as conn:

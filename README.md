@@ -2,7 +2,7 @@
 
 Created with love by Shounak Shelke.
 
-Project 2H4E is a professional endurance-racing command dashboard for live timing, race commentary intelligence, circuit reporting, telemetry-style operations panels, and print-ready race reports. It is designed for NLS, GT-World, Le Mans, Spa, Nürburgring, and other 4-24 hour endurance formats.
+Project 2H4E is a professional endurance-racing command dashboard for live timing, race commentary intelligence, circuit reporting, telemetry-style operations panels, and print-ready race reports. It is designed for NLS, GT-World, Le Mans, Spa, Nurburgring, and other 4-24 hour endurance formats.
 
 ## Current Preview
 
@@ -12,128 +12,71 @@ Project 2H4E is a professional endurance-racing command dashboard for live timin
 
 ![Project 2H4E report footer](docs/assets/screenshots/project-2h4e-footer-report.png)
 
-## Product Goals
-
-Project 2H4E turns fragmented race sources into a single operations view:
-
-- Live timing and standings from user-provided telemetry links.
-- Race Commentary Intelligence from YouTube and generic commentary/video webpages.
-- Circuit reports backed by Wikipedia/Wikimedia and optional Google Programmable Search.
-- AI-style summaries, event timelines, car/team mentions, and engineering recommendations.
-- One-click sample mode for demos and one-click clear back to a blank dashboard.
-- Browser Print PDF output that preserves the black operations-room visual identity.
-
-## Frontend Features
-
-- Blank-by-default startup: no race data appears until the user connects sources or clicks `Load Full Sample`.
-- Floating topbar readonly `Your Time`, optional `Track Time`, and `Print PDF`.
-- Telemetry source bar with `Apply`, `Use Sample Link`, `Load Full Sample`, and `Clear`.
-- Live standings with top 15 / 30 / 50 / all controls.
-- Two-row standings comparison modal:
-  - Full details for both selected cars.
-  - Performance Delta Dashboard.
-  - Race Engineering Dashboard.
-- Operations Core with race clock, lap, track status, safety-car state, weather, gap evolution, risk, fuel, tire, and strategy calls.
-- Race Commentary Intelligence:
-  - Multiple commentary links.
-  - Source chips and clear controls.
-  - Summary timeline and event feed integration.
-  - Metadata-backed summaries when captions are not public.
-- Circuit Report:
-  - Wikipedia/Wikimedia source attribution.
-  - Optional Google context.
-  - Backend-filtered circuit/map/layout image selection.
-  - Zoom In, Zoom Out, Reset, and Change Image controls.
-- Print mode:
-  - Hides interactive controls.
-  - Keeps black background and professional report styling.
-
-## Backend Features
-
-- FastAPI REST backend.
-- SQLite persistence.
-- Azure live-timing scraper service for user-entered live timing links.
-- Commentary source ingestion for YouTube and generic webpages.
-- AI summary provider order:
-  1. `PROJECT_2H4E_AI_API_URL` + `PROJECT_2H4E_AI_API_KEY`
-  2. Groq fallback through `GROQ_API_KEY`
-  3. Clearly labeled deterministic fallback
-- Circuit report service:
-  - Wikipedia search.
-  - Wikipedia page summary.
-  - Wikimedia image candidate lookup.
-  - Rejects logos, flags, posters, cars, badges, and unrelated images.
-  - Accepts circuit, track, map, layout, course, route, Nordschleife, and Grand Prix style filenames.
-  - `Change Image` endpoint rotates through approved circuit candidates.
-- Race-engineering demo modules for tires, fuel, strategy, rivals, telemetry, and AI alerts.
-
-## Tech Stack
-
-Frontend:
-
-- React
-- TypeScript
-- TanStack Start / Vite
-- TailwindCSS
-- shadcn/ui
-- Recharts
-- Lucide icons
-
-Backend:
-
-- Python
-- FastAPI
-- SQLite
-- Pydantic
-- WebSockets client support for live timing
-- Wikipedia/Wikimedia APIs
-- Optional Google Programmable Search
-- Optional Groq API fallback
-
-Deployment:
-
-- Local Vite + Uvicorn
-- Vercel frontend deployment
-- Vercel Python serverless backend deployment
-- Long-running host recommended for persistent WebSockets/background loops
-
 ## Architecture
 
 ```text
-Project 2H4E
-├─ src
-│  ├─ features
-│  │  ├─ command-center
-│  │  │  └─ Main dashboard, topbar, standings, comparison modal, operations core
-│  │  ├─ circuit-report
-│  │  │  └─ Circuit report UI, zoom controls, image rotation API client
-│  │  ├─ live-intelligence
-│  │  │  └─ Commentary links, summaries, timeline, source chips
-│  │  └─ race-data
-│  │     └─ Sample race data and live-timing API client
-│  ├─ components
-│  │  ├─ ui
-│  │  └─ command
-│  └─ lib
-│     └─ API base, utilities, error helpers
-├─ backend
-│  ├─ circuit_report
-│  │  └─ Wikipedia/Wikimedia/Google circuit report service
-│  ├─ live_intelligence
-│  │  └─ Commentary source ingestion and summary generation
-│  ├─ live_timing
-│  │  └─ Azure live timing scraper and normalized standings
-│  ├─ race_engineering
-│  ├─ telemetry
-│  ├─ strategy_engine
-│  ├─ fuel_models
-│  ├─ tire_models
-│  └─ rival_analysis
-├─ api
-│  └─ Vercel serverless FastAPI entry
-└─ docs
-   └─ Screenshots and deployment notes
+Project 24H- Endurance Dashboard
+|-- frontend/
+|   |-- src/
+|   |-- package.json
+|   |-- vite.config.ts
+|   |-- tsconfig.json
+|   |-- vercel.json
+|   `-- .env.example
+|-- backend/
+|   |-- main.py
+|   |-- api/
+|   |-- live_timing/
+|   |-- live_intelligence/
+|   |-- circuit_report/
+|   |-- race_engineering/
+|   |-- requirements.txt
+|   `-- vercel.json
+|-- docs/
+|   |-- DEMO_GUIDE.md
+|   |-- RUN_GUIDE.md
+|   |-- DEPLOYVERCEL.md
+|   |-- BACKEND_ARCHITECTURE.md
+|   |-- BACKEND_README.md
+|   `-- assets/screenshots/
+|-- README.md
+|-- run_project.bat
+`-- .gitignore
 ```
+
+## Product Goals
+
+- Convert live timing, commentary, and circuit context into one motorsport operations interface.
+- Stay blank until the user connects real sources or clicks `Load Full Sample`.
+- Keep sample mode clearly separated from real source-driven data.
+- Support portfolio demos and local race-engineering workflow from one button.
+- Deploy frontend and backend independently on Vercel.
+
+## Frontend Features
+
+- React, TypeScript, TanStack Start, Vite, TailwindCSS, shadcn/ui, Recharts, and Lucide icons.
+- Fixed floating topbar with `Project 2H4E`, Shounak Shelke credit, readonly `Your Time`, optional `Track Time`, and `Print PDF`.
+- Telemetry source controls: `Apply`, `Use Sample Link`, `Load Full Sample`, and `Clear`.
+- Live standings with 15 / 30 / 50 / all list controls.
+- Two-row standings comparison modal with performance deltas and race-engineering analysis.
+- Race Commentary Intelligence for YouTube and generic commentary/video webpage links.
+- Entity mention cards that show all unique cars, teams, and topics from source data.
+- Tire Degradation Curve with an AI-style explanation derived from the visible data.
+- Black-background print mode for PDF-ready race reports.
+
+## Backend Features
+
+- FastAPI backend with SQLite persistence.
+- Live timing scraper for Azure timing URLs, including:
+  - `https://livetiming.azurewebsites.net/events/50/results`
+  - legacy `event=50` URL shapes
+- Continuous live timing refresh after a source is configured.
+- YouTube commentary metadata extraction for:
+  - `https://www.youtube.com/watch?v=ykB5jleVsAM`
+- Commentary summaries through primary AI, Groq fallback, or labeled deterministic fallback.
+- Wikipedia/Wikimedia circuit reports for user-entered circuits such as `Nurburgring`.
+- Backend-filtered circuit image candidates and `Change Image` rotation.
+- Race engineering endpoints for telemetry, tires, fuel, strategy, rivals, pit windows, degradation, battles, and AI alerts.
 
 ## Main API Interfaces
 
@@ -159,27 +102,45 @@ Circuit Report:
 - `GET /api/circuits/report/latest`
 - `POST /api/circuits/report/change-image`
 
-Race engineering:
+## Local Run
 
-- `GET /api/engineering/telemetry`
-- `GET /api/engineering/tires`
-- `GET /api/engineering/fuel`
-- `GET /api/engineering/strategy`
-- `GET /api/engineering/rivals`
-- `GET /api/engineering/ai-alerts`
-- `GET /api/engineering/pit-window`
-- `GET /api/engineering/degradation`
-- `GET /api/engineering/battles`
+One-click Windows launcher:
+
+```bat
+run_project.bat
+```
+
+Manual backend:
+
+```bash
+cd backend
+pip install -r requirements.txt
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Manual frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host 127.0.0.1
+```
+
+Open:
+
+```text
+http://127.0.0.1:5173
+```
 
 ## Environment
 
-Frontend:
+Frontend `.env` in `frontend/`:
 
 ```bash
 VITE_PROJECT_2H4E_API_BASE=http://127.0.0.1:8000
 ```
 
-Backend:
+Backend environment:
 
 ```bash
 GROQ_API_KEY=
@@ -191,41 +152,30 @@ GOOGLE_CSE_ID=
 PROJECT_2H4E_CORS_ORIGINS=http://127.0.0.1:5173,http://localhost:5173
 ```
 
-## Local Run
-
-Backend:
-
-```bash
-cd backend
-pip install -r ../requirements.txt
-uvicorn main:app --reload
-```
-
-Frontend:
-
-```bash
-npm install
-npm run dev -- --host 127.0.0.1
-```
-
-Open:
-
-```text
-http://127.0.0.1:5173
-```
-
 ## Verification
 
 ```bash
+cd frontend
 npm run format
 npm run lint
 npm run build
-python -m compileall backend api
+
+cd ../backend
+python -m compileall .
 ```
+
+## Documentation
+
+- [Demo Guide](docs/demo.md)
+- [Run Guide](docs/run_guide.md)
+- [Project Report](docs/project_report.md)
+- [Vercel Deployment Guide](docs/DEPLOYVERCEL.md)
+- [Backend Architecture](docs/BACKEND_ARCHITECTURE.md)
+- [Backend README](docs/BACKEND_README.md)
 
 ## Credits
 
 Shounak Shelke @May2026  
-email: Shelkeshounak1@gmail.com
+email: Shelkeshounak1@gmail.com  
 Project 2H4E Endurance Dashboard  
 Specially Made for NLS, GT-World, LeMans, Spa, and all types of 4-24 hours Endurance series Formats

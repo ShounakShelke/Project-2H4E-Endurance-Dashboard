@@ -148,6 +148,12 @@ def init_db() -> None:
           google_source_url TEXT,
           google_source_snippet TEXT,
           google_status TEXT,
+          weather_summary TEXT,
+          weather_temperature_c REAL,
+          weather_condition TEXT,
+          weather_wind_kph REAL,
+          weather_source_status TEXT,
+          weather_source TEXT,
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
         """,
@@ -197,6 +203,12 @@ def init_db() -> None:
             "google_source_url": "TEXT",
             "google_source_snippet": "TEXT",
             "google_status": "TEXT",
+            "weather_summary": "TEXT",
+            "weather_temperature_c": "REAL",
+            "weather_condition": "TEXT",
+            "weather_wind_kph": "REAL",
+            "weather_source_status": "TEXT",
+            "weather_source": "TEXT",
         }.items():
             if column not in existing_columns:
                 conn.execute(f"ALTER TABLE circuit_reports ADD COLUMN {column} {definition}")

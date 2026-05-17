@@ -1,0 +1,855 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.5rem;
+  /* Black, red, and white command-center theme */
+  --background: oklch(0.095 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.135 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.12 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.64 0.25 27);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.2 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.18 0 0);
+  --muted-foreground: oklch(0.68 0 0);
+  --accent: oklch(0.985 0 0);
+  --accent-foreground: oklch(0.095 0 0);
+  --destructive: oklch(0.64 0.25 27);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.28 0 0);
+  --input: oklch(0.22 0 0);
+  --ring: oklch(0.64 0.25 27);
+  --chart-1: oklch(0.985 0 0);
+  --chart-2: oklch(0.64 0.25 27);
+  --chart-3: oklch(0.87 0.17 95);
+  --chart-4: oklch(0.76 0.2 145);
+  --chart-5: oklch(0.5 0.22 27);
+  --sidebar: oklch(0.115 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.64 0.25 27);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.28 0 0);
+  --sidebar-ring: oklch(0.64 0.25 27);
+
+  /* Motorsport accents */
+  --neon-cyan: oklch(0.985 0 0);
+  --neon-blue: oklch(0.64 0.25 27);
+  --racing-red: oklch(0.64 0.25 27);
+  --sector-yellow: oklch(0.87 0.17 95);
+  --sector-green: oklch(0.76 0.2 145);
+  --sector-purple: oklch(0.64 0.25 27);
+  --tire-orange: oklch(0.64 0.25 27);
+  --pit-purple: oklch(0.64 0.25 27);
+
+  --gradient-panel: linear-gradient(160deg, oklch(0.16 0 0) 0%, oklch(0.105 0 0) 100%);
+  --gradient-glow: radial-gradient(
+    circle at 50% 0%,
+    color-mix(in oklab, var(--racing-red) 18%, transparent),
+    transparent 70%
+  );
+  --shadow-glow: 0 0 24px -4px color-mix(in oklab, var(--racing-red) 45%, transparent);
+  --shadow-panel: 0 8px 32px -12px oklch(0 0 0 / 0.78);
+  --carbon: repeating-linear-gradient(45deg, oklch(0.16 0 0) 0 2px, oklch(0.105 0 0) 2px 4px);
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    background-image:
+      radial-gradient(
+        1200px 600px at 20% -10%,
+        color-mix(in oklab, var(--racing-red) 10%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at 110% 10%,
+        color-mix(in oklab, var(--foreground) 5%, transparent),
+        transparent 60%
+      );
+    background-attachment: fixed;
+    font-family: "Google Sans", Arial, Helvetica, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  body * {
+    letter-spacing: 0 !important;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--racing-red) 70%, black);
+    color: white;
+  }
+}
+
+@layer utilities {
+  .font-mono-tele {
+    font-family: "Google Sans", Arial, Helvetica, sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0 !important;
+  }
+  .panel {
+    background: var(--gradient-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-panel);
+    position: relative;
+    overflow: hidden;
+  }
+  .panel-glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-glow);
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .grid-bg,
+  .command-bg {
+    background-image:
+      linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 28px 28px;
+  }
+  .live-timing-panel {
+    width: 100%;
+  }
+  .carbon-bg {
+    background: var(--carbon);
+  }
+  .text-cyan {
+    color: var(--neon-cyan);
+  }
+  .text-red-racing {
+    color: var(--racing-red);
+  }
+  .text-yellow-sector {
+    color: var(--sector-yellow);
+  }
+  .text-green-sector {
+    color: var(--sector-green);
+  }
+  .text-purple-sector {
+    color: var(--sector-purple);
+  }
+  .bg-cyan {
+    background-color: var(--neon-cyan);
+  }
+  .bg-red-racing {
+    background-color: var(--racing-red);
+  }
+  .bg-yellow-sector {
+    background-color: var(--sector-yellow);
+  }
+  .bg-green-sector {
+    background-color: var(--sector-green);
+  }
+  .bg-purple-sector {
+    background-color: var(--sector-purple);
+  }
+  .glow-cyan {
+    box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent);
+  }
+  .glow-red {
+    box-shadow: 0 0 18px -2px color-mix(in oklab, var(--racing-red) 70%, transparent);
+  }
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.85);
+    }
+  }
+  .live-dot {
+    animation: pulse-dot 1.4s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(2400%);
+    }
+  }
+  .scanline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--racing-red), transparent);
+    opacity: 0.4;
+    animation: scan 6s linear infinite;
+  }
+
+  @keyframes flash-row {
+    0% {
+      background: color-mix(in oklab, var(--racing-red) 30%, transparent);
+    }
+    100% {
+      background: transparent;
+    }
+  }
+  .flash {
+    animation: flash-row 1.2s ease-out;
+  }
+
+  @keyframes ticker {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+  .ticker {
+    animation: ticker 40s linear infinite;
+  }
+
+  .ops-shell {
+    min-height: 100vh;
+    padding: 132px 16px 16px;
+    background:
+      linear-gradient(color-mix(in oklab, var(--foreground) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(
+        90deg,
+        color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+        transparent 1px
+      ),
+      var(--background);
+    background-size: 34px 34px;
+  }
+
+  .ops-topbar,
+  .ops-panel {
+    background: linear-gradient(180deg, oklch(0.155 0 0), oklch(0.11 0 0));
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 18px 48px -36px black;
+  }
+
+  .ops-topbar {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    right: 16px;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 18px 18px;
+    background: oklch(0.1 0 0 / 0.78);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .ops-topbar h1 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .topbar-credit {
+    max-width: 260px;
+    color: var(--foreground);
+    font-size: 11px;
+    font-weight: 700;
+    text-align: right;
+    text-transform: uppercase;
+  }
+
+  .topbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .topbar-time-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .readonly-time-chip {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.09 0 0 / 0.78);
+    padding: 7px 10px;
+    color: var(--muted-foreground);
+    cursor: default;
+    font-size: 11px;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .readonly-time-chip strong {
+    color: var(--foreground);
+    font-size: 13px;
+  }
+
+  .source-bar {
+    display: grid;
+    grid-template-columns: minmax(230px, 0.48fr) minmax(280px, 1fr) minmax(480px, auto) minmax(
+        180px,
+        0.35fr
+      );
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: linear-gradient(180deg, oklch(0.145 0 0), oklch(0.095 0 0));
+  }
+
+  .source-bar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .source-input {
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.065 0 0);
+    padding: 0 12px;
+    color: var(--foreground);
+    font-size: 13px;
+    outline: none;
+  }
+
+  .source-input:focus {
+    border-color: var(--primary);
+  }
+
+  .source-actions {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    gap: 8px;
+  }
+
+  .source-status {
+    color: var(--muted-foreground);
+    font-size: 11px;
+  }
+
+  .ops-label {
+    color: var(--muted-foreground);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .status-chip {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.09 0 0 / 0.78);
+    padding: 7px 10px;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .status-chip strong {
+    color: var(--foreground);
+    font-size: 13px;
+  }
+
+  .ops-button,
+  .ops-button-secondary {
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--primary);
+    padding: 0 12px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition:
+      background 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .ops-button-secondary {
+    border-color: var(--border);
+    background: oklch(0.18 0 0);
+  }
+
+  .ops-button:hover,
+  .ops-button-secondary:hover {
+    border-color: var(--foreground);
+  }
+
+  .ops-button:disabled,
+  .ops-button-secondary:disabled,
+  .mini-toggle:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .ops-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 0.38fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .right-stack {
+    min-height: 720px;
+  }
+
+  .left-standings {
+    margin-top: 10px;
+    min-height: 0;
+  }
+
+  .right-stack {
+    display: grid;
+    gap: 10px;
+  }
+
+  .engineering-core {
+    min-height: 720px;
+  }
+
+  .panel-pad {
+    padding: 12px;
+  }
+
+  .mini-toggle {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: var(--muted-foreground);
+    font-size: 11px;
+  }
+
+  .mini-toggle-active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+  }
+
+  .standings-row {
+    border-top: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    cursor: pointer;
+  }
+
+  .standings-row:hover {
+    background: oklch(0.18 0 0);
+  }
+
+  .standings-row-selected {
+    background: color-mix(in oklab, var(--racing-red) 18%, oklch(0.12 0 0)) !important;
+    outline: 1px solid var(--racing-red);
+    outline-offset: -1px;
+  }
+
+  .comparison-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .comparison-card,
+  .comparison-dashboard,
+  .comparison-stat,
+  .comparison-sector {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.085 0 0 / 0.72);
+  }
+
+  .comparison-card,
+  .comparison-dashboard {
+    padding: 12px;
+  }
+
+  .comparison-stat,
+  .comparison-sector {
+    padding: 9px;
+  }
+
+  .comparison-stat span,
+  .comparison-sector span {
+    display: block;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .comparison-stat strong,
+  .comparison-sector strong {
+    display: block;
+    margin-top: 3px;
+    color: var(--foreground);
+    font-size: 12px;
+  }
+
+  .comparison-dashboard {
+    margin-top: 10px;
+  }
+
+  .metric-box,
+  .mention-card,
+  .event-line,
+  .engineer-call,
+  .timeline-row {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.085 0 0 / 0.72);
+  }
+
+  .metric-box {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .ops-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .event-line {
+    display: grid;
+    grid-template-columns: 88px 1fr;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .event-line p {
+    color: var(--foreground);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .event-kind {
+    color: var(--racing-red);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .engineer-call {
+    padding: 10px;
+  }
+
+  .engineer-call strong {
+    font-size: 13px;
+  }
+
+  .engineer-call p {
+    margin-top: 4px;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .analysis-tile {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.085 0 0 / 0.72);
+    padding: 12px;
+  }
+
+  .analysis-chart-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(210px, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+    min-height: 230px;
+  }
+
+  .analysis-chart-area {
+    min-height: 230px;
+  }
+
+  .analysis-explain {
+    border-left: 1px solid var(--border);
+    padding-left: 12px;
+  }
+
+  .analysis-explain strong {
+    font-size: 13px;
+  }
+
+  .analysis-explain p {
+    margin-top: 6px;
+    color: var(--muted-foreground);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .timeline-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .timeline-pin {
+    width: 8px;
+    height: 8px;
+    margin-top: 5px;
+    border-radius: 999px;
+    background: var(--racing-red);
+  }
+
+  .mention-card {
+    padding: 10px;
+  }
+
+  .circuit-source-image {
+    height: 180px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: oklch(0.065 0 0);
+    overflow: hidden;
+  }
+
+  .circuit-source-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform-origin: center;
+    transition: transform 180ms ease;
+  }
+
+  @media (max-width: 1200px) {
+    .ops-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .right-stack,
+    .engineering-core {
+      min-height: auto;
+    }
+
+    .analysis-chart-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .analysis-explain {
+      border-left: 0;
+      border-top: 1px solid var(--border);
+      padding-left: 0;
+      padding-top: 10px;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .ops-shell {
+      padding: 214px 8px 8px;
+    }
+
+    .ops-topbar {
+      left: 8px;
+      right: 8px;
+      top: 8px;
+    }
+
+    .ops-topbar,
+    .source-bar,
+    .ops-bottom-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .source-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .ops-topbar h1 {
+      font-size: 34px;
+    }
+
+    .status-row {
+      justify-content: flex-start;
+    }
+
+    .topbar-actions,
+    .topbar-time-group {
+      justify-content: flex-start;
+    }
+
+    .comparison-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    @page {
+      margin: 10mm;
+      background: black;
+    }
+
+    body {
+      background: black !important;
+      color: white !important;
+    }
+
+    .ops-shell {
+      background:
+        linear-gradient(color-mix(in oklab, white 5%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in oklab, white 5%, transparent) 1px, transparent 1px),
+        black !important;
+      background-size: 34px 34px !important;
+      padding: 0;
+    }
+
+    .ops-topbar,
+    .ops-panel {
+      break-inside: avoid;
+      box-shadow: none;
+      background: oklch(0.08 0 0) !important;
+      color: white !important;
+      border-color: oklch(0.28 0 0) !important;
+    }
+
+    .metric-box,
+    .mention-card,
+    .event-line,
+    .engineer-call,
+    .timeline-row,
+    .comparison-card,
+    .comparison-dashboard,
+    .comparison-stat,
+    .comparison-sector {
+      background: black !important;
+      color: white !important;
+      border-color: oklch(0.28 0 0) !important;
+    }
+
+    .ops-layout,
+    .ops-bottom-grid {
+      display: block;
+    }
+
+    .ops-panel,
+    .ops-topbar {
+      margin-bottom: 10px;
+    }
+
+    .print-hide,
+    button,
+    input {
+      display: none !important;
+    }
+  }
+}

@@ -33,6 +33,7 @@ EMPTY_SNAPSHOT: dict[str, Any] = {
 
 _latest_snapshot: dict[str, Any] = dict(EMPTY_SNAPSHOT)
 _active_source: str | None = None
+_polling_task: asyncio.Task | None = None
 
 
 def utc_now() -> str:
@@ -47,7 +48,7 @@ def parse_event_source(url: str) -> tuple[str, str, str]:
     query = parse_qs(parsed.query)
     event_id = query.get("event", [""])[0]
     if not event_id:
-        match = re.search(r"(?:^|/)event[=/](\d+)(?:/|$)", parsed.path)
+        match = re.search(r"(?:^|/)events?[/=](\d+)(?:/|$)", parsed.path)
         if match:
             event_id = match.group(1)
     if not event_id:
@@ -188,6 +189,7 @@ async def configure_source(url: str) -> dict[str, Any]:
             "message": f"Live timing source accepted, but scraping failed: {exc}",
             "received_at": utc_now(),
         }
+    _ensure_polling_task()
     return _latest_snapshot
 
 
@@ -202,7 +204,38 @@ def latest_snapshot() -> dict[str, Any]:
 
 
 def clear_source() -> dict[str, Any]:
-    global _active_source, _latest_snapshot
+    global _active_source, _latest_snapshot, _polling_task
     _active_source = None
+    if _polling_task:
+        _polling_task.cancel()
+        _polling_task = None
     _latest_snapshot = dict(EMPTY_SNAPSHOT)
     return _latest_snapshot
+
+
+async def _continuous_polling_loop() -> None:
+    global _latest_snapshot
+    while _active_source:
+        await asyncio.sleep(30)
+        if not _active_source:
+            break
+        try:
+            _latest_snapshot = await scrape_live_timing(_active_source)
+        except Exception as exc:
+            _latest_snapshot = {
+                **_latest_snapshot,
+                "status": "error",
+                "message": f"Continuous live timing refresh failed: {exc}",
+                "received_at": utc_now(),
+            }
+
+
+def _ensure_polling_task() -> None:
+    global _polling_task
+    if _polling_task and not _polling_task.done():
+        return
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    _polling_task = loop.create_task(_continuous_polling_loop())
