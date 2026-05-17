@@ -6,11 +6,15 @@ Project 2H4E is a professional endurance-racing command dashboard for live timin
 
 ## Current Preview
 
-![Project 2H4E sample dashboard](docs/assets/screenshots/project-2h4e-sample-dashboard.png)
+![Project 2H4E Live Standings](docs/assets/screenshots/live-standings.png)
 
-![Project 2H4E commentary and event feed](docs/assets/screenshots/project-2h4e-commentary-feed.png)
+![Project 2H4E Strategy and Risk Desk](docs/assets/screenshots/strategy-desk.png)
 
-![Project 2H4E report footer](docs/assets/screenshots/project-2h4e-footer-report.png)
+![Project 2H4E Circuit Report and Analysis](docs/assets/screenshots/circuit-report.png)
+
+![Project 2H4E Intelligence and Tire Degradation](docs/assets/screenshots/intelligence-tires.png)
+
+![Project 2H4E Race Comparison](docs/assets/screenshots/race-comparison.png)
 
 ## Architecture
 
